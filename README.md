@@ -1,9 +1,11 @@
 # AudioPlayer
+A demo and a metamod lib to provide similar functions to the previous SM-Ext-Audio extension in csgo, that is, sending custom audio streams such as a song through a bot's voice chat.
 > [!IMPORTANT]
 > Only tested on windows now, will support linux if there's no obstacle.
 
+> [!WARNING]
+> Will auto enable `sv_alltalk 1`.
 
-A demo and a metamod lib to provide similar functions to the previous SM-Ext-Audio extension in csgo, that is, sending custom audio streams such as a song through a bot's voice chat.
 
 ## API Usage
 1. Include the `iaudioplayer.h` in `public` folder.
