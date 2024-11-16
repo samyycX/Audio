@@ -1,4 +1,8 @@
 # AudioPlayer
+> [!IMPORTANT]
+> Only tested on windows now, will support linux if there's no obstacle.
+
+
 A demo and a metamod lib to provide similar functions to the previous SM-Ext-Audio extension in csgo, that is, sending custom audio streams such as a song through a bot's voice chat.
 
 ## API Usage
