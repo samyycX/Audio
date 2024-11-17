@@ -10,8 +10,15 @@ jobs:
       with:
         xmake-version: latest
     - name: Checkout repository and submodules
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         submodules: recursive
-    - name: build
+    - name: Build plugin
       run: xmake build -y linux
+    - name: Pack plugin
+      run: xmake pack
+    - name: Upload plugin as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: result-artifact
+        path: build/xpack/audioplayer/audioplayer.zip
