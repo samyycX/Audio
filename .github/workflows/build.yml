@@ -5,6 +5,13 @@ jobs:
   build_linux:
     runs-on: ubuntu-latest
     steps:
+    - name: Setup xmake
     - uses: xmake-io/github-action-setup-xmake@v1
       with:
         xmake-version: latest
+    - name: Checkout repository and submodules
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: build
+      run: xmake build -y linux
