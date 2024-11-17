@@ -16,9 +16,29 @@ jobs:
     - name: Build plugin
       run: xmake build -y linux
     - name: Pack plugin
-      run: xmake pack
+      run: xmake pack audioplayer_linux
     - name: Upload plugin as artifact
       uses: actions/upload-artifact@v4
       with:
-        name: result-artifact
-        path: build/xpack/audioplayer/audioplayer.zip
+        name: audioplayer_linux.zip
+        path: build/xpack/audioplayer/audioplayer_linux.zip
+  build_windows:
+    runs-on: windows
+    steps:
+    - name: Setup xmake
+      uses: xmake-io/github-action-setup-xmake@v1
+      with:
+        xmake-version: latest
+    - name: Checkout repository and submodules
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: Build plugin
+      run: xmake build -y windows
+    - name: Pack plugin
+      run: xmake pack audioplayer_windows
+    - name: Upload plugin as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: audioplayer_windows.zip
+        path: build/xpack/audioplayer/audioplayer_windows.zip
