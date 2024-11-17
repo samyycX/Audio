@@ -23,7 +23,7 @@ jobs:
         name: audioplayer_linux.zip
         path: build/xpack/audioplayer/audioplayer_linux.zip
   build_windows:
-    runs-on: windows
+    runs-on: windows-latest
     steps:
     - name: Setup xmake
       uses: xmake-io/github-action-setup-xmake@v1
