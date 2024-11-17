@@ -95,7 +95,6 @@ target("windows")
 
 target("linux")
     set_filename("AudioPlayer.so")
-    set_toolchains("mingw")
     set_kind("shared")
     set_plat("linux")
     add_defines("PLATFORM_LINUX")
@@ -124,7 +123,7 @@ target("linux")
 
     add_links({
         SDK_PATH.."/lib/linux64/release/libprotobuf.a",
-        SDK_PATH.."/lib/linux64/libtier0.lib",
+        SDK_PATH.."/lib/linux64/libtier0.so",
         SDK_PATH.."/lib/linux64/tier1.a",
         SDK_PATH.."/lib/linux64/interfaces.a",
         SDK_PATH.."/lib/linux64/mathlib.a",
