@@ -20,7 +20,7 @@ jobs:
     - name: Upload plugin as artifact
       uses: actions/upload-artifact@v4
       with:
-        name: audioplayer_linux.zip
+        name: audioplayer_linux
         path: build/xpack/audioplayer_linux/audioplayer_linux.zip
   build_windows:
     runs-on: windows-latest
@@ -40,5 +40,5 @@ jobs:
     - name: Upload plugin as artifact
       uses: actions/upload-artifact@v4
       with:
-        name: audioplayer_windows.zip
+        name: audioplayer_windows
         path: build/xpack/audioplayer_windows/audioplayer_windows.zip
