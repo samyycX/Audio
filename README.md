@@ -6,6 +6,8 @@ A demo and a metamod lib to provide similar functions to the previous SM-Ext-Aud
 > [!WARNING]
 > Will auto enable `sv_alltalk 1`.
 
+## Prerequisites
+1. ffmpeg
 
 ## API Usage
 1. Include the `iaudioplayer.h` in `public` folder.

@@ -145,6 +145,7 @@ CServerSideClient *GetFakeClient(const char *name)
 
 void ProcessAudio(std::vector<unsigned char> &audio_buffer, float voice_level)
 {
+    g_bPlaying = true;
     // convert audio to s16be pcm (big endian), 48khz sample rate, 1 channel
     std::vector<uint8_t> buffer;
     try
@@ -153,6 +154,7 @@ void ProcessAudio(std::vector<unsigned char> &audio_buffer, float voice_level)
     }
     catch (const std::exception &e)
     {
+        g_bPlaying = false;
         Panic(e.what());
         return;
     }
@@ -216,6 +218,7 @@ void ProcessAudio(std::vector<unsigned char> &audio_buffer, float voice_level)
         SV_BroadcastVoiceData(g_AudioPlayerClient, msg, 0);
         std::this_thread::sleep_for(std::chrono::milliseconds(9));
     }
+    g_bPlaying = false;
     return;
 }
 bool AudioPlayer::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
@@ -305,11 +308,8 @@ bool CAudioPlayerInterface::PlayAudio(std::vector<uint8_t> audio_buffer, float v
         return 0;
     }
     g_AudioPlayerClient = GetFakeClient("[AUDIOPLAYER] Player");
-    Message("3\n");
     std::thread processThread(ProcessAudio, std::ref(audio_buffer), voice_level);
-    Message("1\n");
     processThread.detach();
-    Message("2\n");
 }
 
 const char *AudioPlayer::GetLicense()
