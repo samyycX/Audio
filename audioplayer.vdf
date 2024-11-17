@@ -1,5 +1,5 @@
 "Metamod Plugin"
 {
 	"alias"	"audioplayer"
-	"file"	"addons\AudioPlayer\bin\AudioPlayer"
+	"file"	"addons\audioplayer\bin\audioplayer"
 }
