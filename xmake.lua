@@ -175,8 +175,12 @@ target("linux")
 
     set_languages("cxx17")
 
-xpack("audioplayer")
+xpack("audioplayer_linux")
     set_formats("zip")
     add_installfiles("build/linux/x86_64/release/audioplayer.so", {filename = "audioplayer.so", prefixdir = "audioplayer/bin"})
+    add_installfiles("audioplayer.vdf", {filename = "audioplayer.vdf", prefixdir = "metamod"})
+
+xpack("audioplayer_windows")
+    set_formats("zip")
     add_installfiles("build/windows/x64/release/audioplayer.dll", {filename = "audioplayer.dll", prefixdir = "audioplayer/bin"})
     add_installfiles("audioplayer.vdf", {filename = "audioplayer.vdf", prefixdir = "metamod"})
