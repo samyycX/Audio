@@ -1,10 +1,10 @@
 add_rules("mode.debug", "mode.release")
 add_requires("libopus", {optional = false})
 
--- SDK_PATH = "E:/programming/AudioPlayer/deps/hl2sdk-cs2"
--- MM_PATH = "E:/programming/AudioPlayer/deps/metamod-source-1.12-dev"
-local SDK_PATH = os.getenv("HL2SDKCS2")
-local MM_PATH = os.getenv("MMSOURCE")
+SDK_PATH = "./.deps/hl2sdk"
+MM_PATH = "./.deps/metamod-source"
+-- local SDK_PATH = os.getenv("HL2SDKCS2")
+-- local MM_PATH = os.getenv("MMSOURCE")
 includes("@builtin/xpack")
 
 target("windows")  
