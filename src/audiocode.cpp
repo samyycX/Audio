@@ -8,8 +8,9 @@
 #include <stdexcept>
 #include <string>
 #include <filesystem>
+#include <stdio.h>
 
-#if defined(_WIN32)
+#ifdef PLATFORM_WINDOWS
 #include <windows.h>
 #include <io.h>
 #include <fcntl.h>
@@ -19,7 +20,7 @@
 
 std::string getTempDirectory()
 {
-#if defined(_WIN32)
+#ifdef PLATFORM_WINDOWS
   char tempPath[MAX_PATH];
   GetTempPath(MAX_PATH, tempPath);
   return std::string(tempPath);
@@ -54,7 +55,7 @@ std::vector<uint8_t> executeFFmpeg(const std::string &inputFilePath)
     outputBuffer.insert(outputBuffer.end(), buffer, buffer + bytesRead);
   }
 
-#if defined(_WIN32)
+#ifdef PLATFORM_WINDOWS
   _pclose(pipe);
 #else
   pclose(pipe);

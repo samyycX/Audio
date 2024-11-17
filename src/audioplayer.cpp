@@ -245,9 +245,13 @@ bool AudioPlayer::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, b
         RegisterEventListeners();
         g_pNetworkGameServer = g_pNetworkServerService->GetIGameServer();
     }
-
+#ifdef PLATFORM_WINDOWS
     const byte SV_BroadcastVoiceData_Sig[] = "\x48\x89\x74\x24\x20\x48\x89\x54\x24\x10\x55\x57\x41\x55";
     const byte CMsgVoiceAudio_Constructor_Sig[] = "\x48\x89\x5C\x24\x10\x48\x89\x74\x24\x18\x57\x48\x83\xEC\x20\x33\xF6\x48\x8B\xF9\x8D\x56\x58";
+#else
+    const byte SV_BroadcastVoiceData_Sig[] = "\x55\x48\x89\xE5\x41\x57\x49\x89\xD7\x41\x56\x49\x89\xF6\xBE\xFF\xFF\xFF\xFF";
+    const byte CMsgVoiceAudio_Constructor_Sig[] = "\x55\x48\x89\xE5\x53\x48\x83\xEC\x08\x48\x85\xFF\x74\x2A\x48\x8D\x15\x73\xA6\x5D\x00";
+#endif
     int sig_error;
     g_pfnSVBroadcastVoiceData = (SV_BroadcastVoiceData_t)engine->FindSignature(SV_BroadcastVoiceData_Sig, sizeof(SV_BroadcastVoiceData_Sig) - 1, sig_error);
     g_pfnCMsgVoiceAudioConstructor = (CMSgVoiceAudio_Constructor_t)engine->FindSignature(CMsgVoiceAudio_Constructor_Sig, sizeof(CMsgVoiceAudio_Constructor_Sig) - 1, sig_error);
