@@ -8,5 +8,5 @@
 class IAudioPlayer
 {
 public:
-  virtual bool PlayAudio(std::string filename, float voice_level) = 0;
+  virtual bool PlayAudio(std::string file_path, float voice_level) = 0;
 };

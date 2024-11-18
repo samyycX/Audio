@@ -3,8 +3,6 @@ add_requires("libopus", {optional = false})
 
 SDK_PATH = "./.deps/hl2sdk"
 MM_PATH = "./.deps/metamod-source"
--- local SDK_PATH = os.getenv("HL2SDKCS2")
--- local MM_PATH = os.getenv("MMSOURCE")
 includes("@builtin/xpack")
 
 target("windows")  
@@ -18,20 +16,10 @@ target("windows")
     add_packages("libopus")
 
     add_files({
-        SDK_PATH.."/tier1/convar.cpp",
-        SDK_PATH.."/public/tier0/memoverride.cpp",
-        SDK_PATH.."/tier1/generichash.cpp",
-        SDK_PATH.."/tier1/keyvalues3.cpp",
-        "protobuf/generated/usermessages.pb.cc",
         "protobuf/generated/network_connection.pb.cc",
         "protobuf/generated/networkbasetypes.pb.cc",
-        "protobuf/generated/engine_gcmessages.pb.cc",
         "protobuf/generated/steammessages.pb.cc",
-        "protobuf/generated/gcsdk_gcmessages.pb.cc",
-        "protobuf/generated/cstrike15_gcmessages.pb.cc",
-        "protobuf/generated/cstrike15_usermessages.pb.cc",
-        "protobuf/generated/usercmd.pb.cc",
-        "protobuf/generated/cs_usercmd.pb.cc"
+        "protobuf/generated/netmessages.pb.cc",
     })
 
     add_links({
@@ -49,7 +37,6 @@ target("windows")
      add_links({
         "funchook",
         "distorm",
-        "d3d9"
     })
 
     add_links("psapi");
@@ -105,20 +92,10 @@ target("linux")
     set_symbols("hidden")
 
     add_files({
-        -- SDK_PATH.."/tier1/convar.cpp",
-        -- SDK_PATH.."/public/tier0/memoverride.cpp",
-        -- SDK_PATH.."/tier1/generichash.cpp",
-        -- SDK_PATH.."/tier1/keyvalues3.cpp",
-        "protobuf/generated/usermessages.pb.cc",
         "protobuf/generated/network_connection.pb.cc",
         "protobuf/generated/networkbasetypes.pb.cc",
-        "protobuf/generated/engine_gcmessages.pb.cc",
         "protobuf/generated/steammessages.pb.cc",
-        "protobuf/generated/gcsdk_gcmessages.pb.cc",
-        "protobuf/generated/cstrike15_gcmessages.pb.cc",
-        "protobuf/generated/cstrike15_usermessages.pb.cc",
-        "protobuf/generated/usercmd.pb.cc",
-        "protobuf/generated/cs_usercmd.pb.cc"
+        "protobuf/generated/netmessages.pb.cc",
     })
 
     add_links({
@@ -173,7 +150,7 @@ target("linux")
         "_GLIBCXX_USE_CXX11_ABI=1"
     })
 
-    set_languages("cxx17")
+    set_languages("cxx20")
 
 xpack("audioplayer_linux")
     set_formats("zip")

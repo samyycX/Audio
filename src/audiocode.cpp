@@ -29,13 +29,11 @@ std::string getTempDirectory()
 #endif
 }
 
-std::vector<uint8_t> executeFFmpeg(std::string inputFilePath)
+std::vector<uint8_t> convertAudioBufferToPCM(std::string file_path)
 {
   std::vector<uint8_t> outputBuffer;
-  std::cout << inputFilePath << std::endl;
-  // Construct FFmpeg command
   std::ostringstream command;
-  command << "ffmpeg -y -i \"" << inputFilePath << "\" -acodec pcm_s16be -ac 1 -ar 48000 -f s16be -";
+  command << "ffmpeg -y -i \"" << file_path << "\" -acodec pcm_s16be -ac 1 -ar 48000 -f s16be -";
 
 #if defined(_WIN32)
   FILE *pipe = _popen(command.str().c_str(), "rb");
@@ -60,18 +58,6 @@ std::vector<uint8_t> executeFFmpeg(std::string inputFilePath)
 #else
   pclose(pipe);
 #endif
-
-  return outputBuffer;
-}
-
-std::vector<uint8_t> convertAudioBufferToPCM(std::string filename)
-{
-
-  // Execute FFmpeg and get output buffer
-  std::vector<uint8_t> outputBuffer = executeFFmpeg(filename);
-
-  // Clean up temp file
-  // std::filesystem::remove(inputFilePath);
 
   return outputBuffer;
 }

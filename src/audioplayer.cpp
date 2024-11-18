@@ -25,8 +25,8 @@
 #include <networksystem/inetworkserializer.h>
 #include "../protobuf/generated/netmessages.pb.h"
 
-typedef char(FASTCALL *SV_BroadcastVoiceData_t)(int64 idk, CServerSideClient *client, CMsgVoiceAudio *data, int64 xuid);
-typedef CMsgVoiceAudio *(FASTCALL *CMSgVoiceAudio_Constructor_t)(int64 a);
+// typedef char(FASTCALL *SV_BroadcastVoiceData_t)(int64 idk, CServerSideClient *client, CMsgVoiceAudio *data, int64 xuid);
+// typedef CMsgVoiceAudio *(FASTCALL *CMSgVoiceAudio_Constructor_t)(int64 a);
 
 AudioPlayer g_AudioPlayer;
 INetworkGameServer *g_pNetworkGameServer = nullptr;
@@ -38,10 +38,10 @@ int g_iLoadEventsFromFileId;
 CModule *engine = nullptr;
 CModule *server = nullptr;
 
-SV_BroadcastVoiceData_t g_pfnSVBroadcastVoiceData = nullptr;
-CMSgVoiceAudio_Constructor_t g_pfnCMsgVoiceAudioConstructor = nullptr;
+// SV_BroadcastVoiceData_t g_pfnSVBroadcastVoiceData = nullptr;
+// CMSgVoiceAudio_Constructor_t g_pfnCMsgVoiceAudioConstructor = nullptr;
 
-OpusEncoder *encoder = opus_encoder_create(48000, 1, OPUS_APPLICATION_VOIP, NULL);
+OpusEncoder *encoder = opus_encoder_create(48000, 1, OPUS_APPLICATION_AUDIO, NULL);
 const int FRAMESIZE = 960;
 const int SAMPLERATE = 48000;
 int g_SectionNumber = 0;
@@ -86,15 +86,10 @@ void Panic(const char *msg, ...)
     va_end(args);
 }
 
-void SV_BroadcastVoiceData(CServerSideClient *client, CMsgVoiceAudio *data, int64 xuid)
-{
-    // the first parameter is a constant, it is the same is engine2.dll+0x60E4D0
-    g_pfnSVBroadcastVoiceData(*(int64 *)((int64)client + 80), client, data, xuid);
-}
-CMsgVoiceAudio *NewCMsgVoiceAudio()
-{
-    return g_pfnCMsgVoiceAudioConstructor(0);
-}
+// CMsgVoiceAudio *NewCMsgVoiceAudio()
+// {
+//     return g_pfnCMsgVoiceAudioConstructor(0);
+// }
 CUtlVector<CServerSideClient *> *GetClientList()
 {
     if (!g_pNetworkGameServer)
@@ -139,7 +134,6 @@ CServerSideClient *GetFakeClient(const char *name)
         CPlayerSlot slot = g_pEngineServer2->CreateFakeClient(name);
         fakeClient = GetClientBySlot(slot);
     }
-    // CCSPlayerController *pController = (CCSPlayerController *)g_pEntitySystem->GetEntityInstance((CEntityIndex)(fakeClient->GetPlayerSlot().Get() + 1));
     return fakeClient;
 }
 
@@ -159,78 +153,91 @@ void ProcessAudio(std::string filename, float voice_level)
         return;
     }
 
-    std::chrono::steady_clock::time_point last_pull;
+    // std::chrono::steady_clock::time_point last_pull;
     struct OpusBuffer
     {
         std::string data;
-        int opusSize;
+        int opus_size;
     };
-    std::vector<OpusBuffer> opusBuffers;
+    std::vector<OpusBuffer> opus_buffers;
 
-    // cs2 opus: 48khz samplerate, 480 framesize, so we need to start a thread to send it each 10ms
+    // cs2 opus: 48khz samplerate, 480 framesize, a message can hold 4 packets, so we need to start a thread to send it each 40ms
     Message("Encoding to opus...\n");
     while (true)
     {
         if (buffer.size() == 0)
             break;
-        const int maxPacketSize = 4000;
-        std::vector<int16_t> pcmBuffer(FRAMESIZE * 1 * 2);
-        std::vector<unsigned char> opusBuffer(maxPacketSize);
+        std::vector<int16_t> pcm_buffer(FRAMESIZE * 1 * 2);
+        std::vector<unsigned char> opus_buffer(2048);
         auto frame_size = std::min<size_t>(FRAMESIZE, buffer.size());
         std::vector<uint8_t> extracted(buffer.begin(), buffer.begin() + frame_size);
         buffer.erase(buffer.begin(), buffer.begin() + frame_size);
 
         for (int i = 0; i < extracted.size(); i += 2)
         {
-            pcmBuffer[i / 2] = (extracted[i] << 8) | extracted[i + 1];
+            pcm_buffer[i / 2] = (extracted[i] << 8) | extracted[i + 1];
         }
 
-        int opusBytes = opus_encode(encoder, pcmBuffer.data(), frame_size / 2,
-                                    opusBuffer.data(), opusBuffer.size());
-        if (opusBytes != -1)
+        int opus_size = opus_encode(encoder, pcm_buffer.data(), frame_size / 2,
+                                    opus_buffer.data(), opus_buffer.size());
+        if (opus_size != -1)
         {
-            opusBuffer.resize(opusBytes);
-            std::string data = std::string(opusBuffer.begin(), opusBuffer.end());
-            opusBuffers.push_back({data, opusBytes});
+            opus_buffer.resize(opus_size);
+            std::string data = std::string(opus_buffer.begin(), opus_buffer.end());
+            opus_buffers.push_back({data, opus_size});
         }
     }
 
     Message("Start playing...\n");
     while (true)
     {
-        if (opusBuffers.size() == 0)
+        if (opus_buffers.size() == 0)
         {
             break;
         }
         g_SectionNumber += 1;
-        CMsgVoiceAudio *msg = NewCMsgVoiceAudio();
-        std::string data;
+        INetworkMessageInternal *pSVC_VoiceData = g_pNetworkMessages->FindNetworkMessageById(47);
+        CNetMessagePB<CSVCMsg_VoiceData> *pData = pSVC_VoiceData->AllocateMessage()->ToPB<CSVCMsg_VoiceData>();
+        pData->set_client(g_AudioPlayerClient->GetPlayerSlot().Get());
+        pData->set_xuid(0);
+        CMsgVoiceAudio *audio = pData->mutable_audio();
+        std::string voice_data;
         int num_packets = 0;
-        int offset = 0;
+        int packet_offsets = 0;
         for (int i = 0; i < 4; i++)
         {
-            if (opusBuffers.size() == 0)
+            if (opus_buffers.size() == 0)
             {
                 continue;
             }
-            OpusBuffer buf = opusBuffers.front();
-            data.append(buf.data);
-            msg->add_packet_offsets(buf.opusSize + offset);
-            offset += buf.opusSize;
-            opusBuffers.erase(opusBuffers.begin());
+            OpusBuffer buf = opus_buffers.front();
+            voice_data.append(buf.data);
+            audio->add_packet_offsets(packet_offsets + buf.opus_size);
+            packet_offsets += buf.opus_size;
+            opus_buffers.erase(opus_buffers.begin());
             num_packets += 1;
         }
-        msg->set_allocated_voice_data(&data);
-        msg->set_format(VoiceDataFormat_t::VOICEDATA_FORMAT_OPUS);
-        msg->set_sample_rate(48000);
-        msg->set_sequence_bytes(0);
-        msg->set_num_packets(num_packets);
+        audio->set_allocated_voice_data(&voice_data);
+        audio->set_format(VoiceDataFormat_t::VOICEDATA_FORMAT_OPUS);
+        audio->set_sample_rate(SAMPLERATE);
+        audio->set_sequence_bytes(0);
+        audio->set_num_packets(num_packets);
         // not sure if this is correct
-        msg->set_section_number(g_SectionNumber);
-        msg->set_voice_level(voice_level);
-        last_pull = std::chrono::steady_clock::now();
-        // g_AudioPlayerClient->GetNetChannel()->SendNetMessage()
-        SV_BroadcastVoiceData(g_AudioPlayerClient, msg, 0);
+        audio->set_section_number(g_SectionNumber);
+        audio->set_voice_level(voice_level);
+        CUtlVector<CServerSideClient *> *client_list = GetClientList();
+        for (int i = 0; i < client_list->Count(); i++)
+        {
+            if (!client_list->IsValidIndex(i))
+            {
+                continue;
+            }
+            CServerSideClient *client = client_list->Element(i);
+            if (client->IsInGame() && !client->IsFakePlayer() && !client->IsHLTV())
+            {
+                client->GetNetChannel()->SendNetMessage(pData, NetChannelBufType_t::BUF_VOICE);
+            }
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(39));
     }
     g_bPlaying = false;
@@ -260,16 +267,16 @@ bool AudioPlayer::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, b
         RegisterEventListeners();
         g_pNetworkGameServer = g_pNetworkServerService->GetIGameServer();
     }
-#ifdef PLATFORM_WINDOWS
-    const byte SV_BroadcastVoiceData_Sig[] = "\x48\x89\x74\x24\x20\x48\x89\x54\x24\x10\x55\x57\x41\x55";
-    const byte CMsgVoiceAudio_Constructor_Sig[] = "\x48\x89\x5C\x24\x10\x48\x89\x74\x24\x18\x57\x48\x83\xEC\x20\x33\xF6\x48\x8B\xF9\x8D\x56\x58";
-#else
-    const byte SV_BroadcastVoiceData_Sig[] = "\x55\x48\x89\xE5\x41\x57\x49\x89\xD7\x41\x56\x49\x89\xF6\xBE\xFF\xFF\xFF\xFF";
-    const byte CMsgVoiceAudio_Constructor_Sig[] = "\x55\x48\x89\xE5\x53\x48\x83\xEC\x08\x48\x85\xFF\x74\x2A\x48\x8D\x15\x73\xA6\x5D\x00";
-#endif
-    int sig_error;
-    g_pfnSVBroadcastVoiceData = (SV_BroadcastVoiceData_t)engine->FindSignature(SV_BroadcastVoiceData_Sig, sizeof(SV_BroadcastVoiceData_Sig) - 1, sig_error);
-    g_pfnCMsgVoiceAudioConstructor = (CMSgVoiceAudio_Constructor_t)engine->FindSignature(CMsgVoiceAudio_Constructor_Sig, sizeof(CMsgVoiceAudio_Constructor_Sig) - 1, sig_error);
+    // #ifdef PLATFORM_WINDOWS
+    //     const byte SV_BroadcastVoiceData_Sig[] = "\x48\x89\x74\x24\x20\x48\x89\x54\x24\x10\x55\x57\x41\x55";
+    //     const byte CMsgVoiceAudio_Constructor_Sig[] = "\x48\x89\x5C\x24\x10\x48\x89\x74\x24\x18\x57\x48\x83\xEC\x20\x33\xF6\x48\x8B\xF9\x8D\x56\x58";
+    // #else
+    //     const byte SV_BroadcastVoiceData_Sig[] = "\x55\x48\x89\xE5\x41\x57\x49\x89\xD7\x41\x56\x49\x89\xF6\xBE\xFF\xFF\xFF\xFF";
+    //     const byte CMsgVoiceAudio_Constructor_Sig[] = "\x55\x48\x89\xE5\x53\x48\x83\xEC\x08\x48\x85\xFF\x74\x2A\x48\x8D\x15\x73\xA6\x5D\x00";
+    // #endif
+    //     int sig_error;
+    //     g_pfnSVBroadcastVoiceData = (SV_BroadcastVoiceData_t)engine->FindSignature(SV_BroadcastVoiceData_Sig, sizeof(SV_BroadcastVoiceData_Sig) - 1, sig_error);
+    //     g_pfnCMsgVoiceAudioConstructor = (CMSgVoiceAudio_Constructor_t)engine->FindSignature(CMsgVoiceAudio_Constructor_Sig, sizeof(CMsgVoiceAudio_Constructor_Sig) - 1, sig_error);
     return true;
 }
 
@@ -338,7 +345,7 @@ const char *AudioPlayer::GetLicense()
 
 const char *AudioPlayer::GetVersion()
 {
-    return "1.0.0"; // defined by the build script
+    return "1.1.0";
 }
 
 const char *AudioPlayer::GetDate()
