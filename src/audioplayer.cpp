@@ -143,14 +143,14 @@ CServerSideClient *GetFakeClient(const char *name)
     return fakeClient;
 }
 
-void ProcessAudio(std::vector<unsigned char> &audio_buffer, float voice_level)
+void ProcessAudio(std::string filename, float voice_level)
 {
     g_bPlaying = true;
     // convert audio to s16be pcm (big endian), 48khz sample rate, 1 channel
     std::vector<uint8_t> buffer;
     try
     {
-        buffer = convertAudioBufferToPCM(audio_buffer);
+        buffer = convertAudioBufferToPCM(filename);
     }
     catch (const std::exception &e)
     {
@@ -187,8 +187,12 @@ void ProcessAudio(std::vector<unsigned char> &audio_buffer, float voice_level)
 
         int opusBytes = opus_encode(encoder, pcmBuffer.data(), frame_size / 2,
                                     opusBuffer.data(), opusBuffer.size());
-
-        opusBuffers.push_back({std::string(opusBuffer.begin(), opusBuffer.end()), opusBytes});
+        if (opusBytes != -1)
+        {
+            opusBuffer.resize(opusBytes);
+            std::string data = std::string(opusBuffer.begin(), opusBuffer.end());
+            opusBuffers.push_back({data, opusBytes});
+        }
     }
 
     Message("Start playing...\n");
@@ -200,23 +204,34 @@ void ProcessAudio(std::vector<unsigned char> &audio_buffer, float voice_level)
         }
         g_SectionNumber += 1;
         CMsgVoiceAudio *msg = NewCMsgVoiceAudio();
-        OpusBuffer buf = opusBuffers.front();
-        opusBuffers.erase(opusBuffers.begin());
-        msg->set_allocated_voice_data(&buf.data);
+        std::string data;
+        int num_packets = 0;
+        int offset = 0;
+        for (int i = 0; i < 4; i++)
+        {
+            if (opusBuffers.size() == 0)
+            {
+                continue;
+            }
+            OpusBuffer buf = opusBuffers.front();
+            data.append(buf.data);
+            msg->add_packet_offsets(buf.opusSize + offset);
+            offset += buf.opusSize;
+            opusBuffers.erase(opusBuffers.begin());
+            num_packets += 1;
+        }
+        msg->set_allocated_voice_data(&data);
         msg->set_format(VoiceDataFormat_t::VOICEDATA_FORMAT_OPUS);
         msg->set_sample_rate(48000);
         msg->set_sequence_bytes(0);
-        msg->set_num_packets(1);
+        msg->set_num_packets(num_packets);
         // not sure if this is correct
         msg->set_section_number(g_SectionNumber);
-        msg->add_packet_offsets(buf.opusSize);
-        msg->add_packet_offsets(0);
-        msg->add_packet_offsets(0);
-        msg->add_packet_offsets(0);
         msg->set_voice_level(voice_level);
         last_pull = std::chrono::steady_clock::now();
+        // g_AudioPlayerClient->GetNetChannel()->SendNetMessage()
         SV_BroadcastVoiceData(g_AudioPlayerClient, msg, 0);
-        std::this_thread::sleep_for(std::chrono::milliseconds(9));
+        std::this_thread::sleep_for(std::chrono::milliseconds(39));
     }
     g_bPlaying = false;
     return;
@@ -304,7 +319,7 @@ int AudioPlayer::Hook_LoadEventsFromFile(const char *filename, bool bSearchAll)
     RETURN_META_VALUE(MRES_IGNORED, 0);
 }
 
-bool CAudioPlayerInterface::PlayAudio(std::vector<uint8_t> audio_buffer, float voice_level)
+bool CAudioPlayerInterface::PlayAudio(std::string filename, float voice_level)
 {
     if (g_bPlaying)
     {
@@ -312,7 +327,7 @@ bool CAudioPlayerInterface::PlayAudio(std::vector<uint8_t> audio_buffer, float v
         return 0;
     }
     g_AudioPlayerClient = GetFakeClient("[AUDIOPLAYER] Player");
-    std::thread processThread(ProcessAudio, std::ref(audio_buffer), voice_level);
+    std::thread processThread(ProcessAudio, filename, voice_level);
     processThread.detach();
 }
 

@@ -182,5 +182,5 @@ xpack("audioplayer_linux")
 
 xpack("audioplayer_windows")
     set_formats("zip")
-    add_installfiles("build/windows/x64/release/audioplayer.dll", {filename = "audioplayer.dll", prefixdir = "audioplayer/bin"})
+    add_installfiles("build/wi`ndows/x64/release/audioplayer.dll", {filename = "audioplayer.dll", prefixdir = "audioplayer/bin"})
     add_installfiles("audioplayer.vdf", {filename = "audioplayer.vdf", prefixdir = "metamod"})

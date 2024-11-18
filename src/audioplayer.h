@@ -38,5 +38,5 @@ public:
 class CAudioPlayerInterface : IAudioPlayer
 {
 public:
-  virtual bool PlayAudio(std::vector<uint8_t> audio_buffer, float voice_level) override;
+  virtual bool PlayAudio(std::string filename, float voice_level) override;
 };

@@ -29,10 +29,10 @@ std::string getTempDirectory()
 #endif
 }
 
-std::vector<uint8_t> executeFFmpeg(const std::string &inputFilePath)
+std::vector<uint8_t> executeFFmpeg(std::string inputFilePath)
 {
   std::vector<uint8_t> outputBuffer;
-
+  std::cout << inputFilePath << std::endl;
   // Construct FFmpeg command
   std::ostringstream command;
   command << "ffmpeg -y -i \"" << inputFilePath << "\" -acodec pcm_s16be -ac 1 -ar 48000 -f s16be -";
@@ -55,7 +55,7 @@ std::vector<uint8_t> executeFFmpeg(const std::string &inputFilePath)
     outputBuffer.insert(outputBuffer.end(), buffer, buffer + bytesRead);
   }
 
-#ifdef PLATFORM_WINDOWS
+#if defined(_WIN32)
   _pclose(pipe);
 #else
   pclose(pipe);
@@ -64,24 +64,14 @@ std::vector<uint8_t> executeFFmpeg(const std::string &inputFilePath)
   return outputBuffer;
 }
 
-std::vector<uint8_t> convertAudioBufferToPCM(const std::vector<uint8_t> &inputBuffer)
+std::vector<uint8_t> convertAudioBufferToPCM(std::string filename)
 {
-  std::string tempDir = getTempDirectory();
-  std::string inputFilePath = tempDir + "audioplayer_input_audio.tmp";
-  {
-    std::ofstream inputFile(inputFilePath, std::ios::binary);
-    if (!inputFile)
-    {
-      throw std::runtime_error("Failed to create temporary input file");
-    }
-    inputFile.write(reinterpret_cast<const char *>(inputBuffer.data()), inputBuffer.size());
-  }
 
   // Execute FFmpeg and get output buffer
-  std::vector<uint8_t> outputBuffer = executeFFmpeg(inputFilePath);
+  std::vector<uint8_t> outputBuffer = executeFFmpeg(filename);
 
   // Clean up temp file
-  std::filesystem::remove(inputFilePath);
+  // std::filesystem::remove(inputFilePath);
 
   return outputBuffer;
 }
