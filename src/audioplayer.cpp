@@ -336,6 +336,7 @@ bool CAudioPlayerInterface::PlayAudio(std::string filename, float voice_level)
     g_AudioPlayerClient = GetFakeClient("[AUDIOPLAYER] Player");
     std::thread processThread(ProcessAudio, filename, voice_level);
     processThread.detach();
+    return 1;
 }
 
 const char *AudioPlayer::GetLicense()
