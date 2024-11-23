@@ -45,6 +45,7 @@ public:
 
 extern "C"
 {
+#ifdef _WIN32
   __declspec(dllexport) void NativeSetPlayerHearing(int slot, bool hearing);
   __declspec(dllexport) void NativeSetAllPlayerHearing(bool hearing);
   __declspec(dllexport) bool NativeIsHearing(int slot);
@@ -52,4 +53,13 @@ extern "C"
   __declspec(dllexport) void NativeSetAllAudioBufferString(const char *audioBuffer, const char *audioPath);
   __declspec(dllexport) bool NativeIsPlaying(int slot);
   __declspec(dllexport) bool NativeIsAllPlaying();
+#else
+  __attribute__((visibility("default"))) void NativeSetPlayerHearing(int slot, bool hearing);
+  __attribute__((visibility("default"))) void NativeSetAllPlayerHearing(bool hearing);
+  __attribute__((visibility("default"))) bool NativeIsHearing(int slot);
+  __attribute__((visibility("default"))) void NativeSetPlayerAudioBufferString(int slot, const char *audioBuffer, const char *audioPath);
+  __attribute__((visibility("default"))) void NativeSetAllAudioBufferString(const char *audioBuffer, const char *audioPath);
+  __attribute__((visibility("default"))) bool NativeIsPlaying(int slot);
+  __attribute__((visibility("default"))) bool NativeIsAllPlaying();
+#endif
 }
