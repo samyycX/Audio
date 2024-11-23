@@ -25,6 +25,7 @@
 
 extern IGameEventManager2 *g_gameEventManager;
 extern IVEngineServer2 *g_pEngineServer2;
+extern bool g_bPlaying;
 
 CUtlVector<CGameEventListener *> g_vecEventListeners;
 
@@ -58,5 +59,9 @@ void UnregisterEventListeners()
 
 GAME_EVENT_F(round_start)
 {
-	g_pEngineServer2->ServerCommand("sv_alltalk 1");
+	g_bPlaying = 1;
+}
+GAME_EVENT_F(round_end)
+{
+	g_bPlaying = 0;
 }

@@ -16,11 +16,14 @@
 #include <eiface.h>
 #include <entitysystem.h>
 #include <igameevents.h>
+#include <filesystem>
 #include "engine/igameeventsystem.h"
 #include "eventlistener.h"
 #include "opus/opus.h"
 #include "tier1/strtools.h"
-#include "audiocode.h"
+#include "helper.h"
+#include "globals.h"
+#include "api.h"
 #include <networksystem/inetworkmessages.h>
 #include <networksystem/inetworkserializer.h>
 #include "../protobuf/generated/netmessages.pb.h"
@@ -34,23 +37,19 @@ IVEngineServer2 *g_pEngineServer2 = nullptr;
 IGameEventSystem *g_gameEventSystem = nullptr;
 IGameEventManager2 *g_gameEventManager = nullptr;
 int g_iLoadEventsFromFileId;
+std::string g_TempDir;
+bool initialized = false;
 
 CModule *engine = nullptr;
 CModule *server = nullptr;
 
-// SV_BroadcastVoiceData_t g_pfnSVBroadcastVoiceData = nullptr;
-// CMSgVoiceAudio_Constructor_t g_pfnCMsgVoiceAudioConstructor = nullptr;
-
 OpusEncoder *encoder = opus_encoder_create(48000, 1, OPUS_APPLICATION_AUDIO, NULL);
-const int FRAMESIZE = 960;
-const int SAMPLERATE = 48000;
-int g_SectionNumber = 0;
-
-CServerSideClient *g_AudioPlayerClient = nullptr;
 
 bool g_bPlaying = false;
 
 CAudioPlayerInterface g_AudioPlayerInterface;
+
+std::thread VoiceDataSendingThread;
 
 PLUGIN_EXPOSE(AudioPlayer, g_AudioPlayer);
 
@@ -85,147 +84,33 @@ void Panic(const char *msg, ...)
 
     va_end(args);
 }
-
-// CMsgVoiceAudio *NewCMsgVoiceAudio()
-// {
-//     return g_pfnCMsgVoiceAudioConstructor(0);
-// }
-CUtlVector<CServerSideClient *> *GetClientList()
+void SendVoiceDataLoop()
 {
-    if (!g_pNetworkGameServer)
-        return nullptr;
-
-#ifdef PLATFORM_WINDOWS
-    static constexpr int offset = 78;
-#else
-    static constexpr int offset = 80;
-#endif
-    return (CUtlVector<CServerSideClient *> *)(&g_pNetworkGameServer[offset]);
-}
-
-CServerSideClient *GetClientBySlot(CPlayerSlot slot)
-{
-    CUtlVector<CServerSideClient *> *pClients = GetClientList();
-
-    if (!pClients)
-        return nullptr;
-
-    return pClients->Element(slot.Get());
-}
-
-CServerSideClient *GetFakeClient(const char *name)
-{
-    auto pClients = GetClientList();
-    CServerSideClient *fakeClient = nullptr;
-    for (int i = 0; i < pClients->Count(); i++)
-    {
-        if (pClients->IsValidIndex(i))
-        {
-            auto client = pClients->Element(i);
-            if (client->IsInGame() && (client->IsFakePlayer() || client->IsHLTV()))
-            {
-                fakeClient = client;
-                break;
-            }
-        }
-    }
-    if (!fakeClient)
-    {
-        CPlayerSlot slot = g_pEngineServer2->CreateFakeClient(name);
-        fakeClient = GetClientBySlot(slot);
-    }
-    return fakeClient;
-}
-
-void ProcessAudio(std::string filename, float voice_level)
-{
-    g_bPlaying = true;
-    // convert audio to s16be pcm (big endian), 48khz sample rate, 1 channel
-    std::vector<uint8_t> buffer;
-    try
-    {
-        buffer = convertAudioBufferToPCM(filename);
-    }
-    catch (const std::exception &e)
-    {
-        g_bPlaying = false;
-        Panic(e.what());
-        return;
-    }
 
     // std::chrono::steady_clock::time_point last_pull;
-    struct OpusBuffer
-    {
-        std::string data;
-        int opus_size;
-    };
-    std::vector<OpusBuffer> opus_buffers;
 
     // cs2 opus: 48khz samplerate, 480 framesize, a message can hold 4 packets, so we need to start a thread to send it each 40ms
-    Message("Encoding to opus...\n");
     while (true)
     {
-        if (buffer.size() == 0)
-            break;
-        std::vector<int16_t> pcm_buffer(FRAMESIZE * 1 * 2);
-        std::vector<unsigned char> opus_buffer(2048);
-        auto frame_size = std::min<size_t>(FRAMESIZE, buffer.size());
-        std::vector<uint8_t> extracted(buffer.begin(), buffer.begin() + frame_size);
-        buffer.erase(buffer.begin(), buffer.begin() + frame_size);
-
-        for (int i = 0; i < extracted.size(); i += 2)
+        if (!g_bPlaying)
         {
-            pcm_buffer[i / 2] = (extracted[i] << 8) | extracted[i + 1];
+            std::this_thread::sleep_for(std::chrono::milliseconds(39));
+            continue;
         }
-
-        int opus_size = opus_encode(encoder, pcm_buffer.data(), frame_size / 2,
-                                    opus_buffer.data(), opus_buffer.size());
-        if (opus_size != -1)
-        {
-            opus_buffer.resize(opus_size);
-            std::string data = std::string(opus_buffer.begin(), opus_buffer.end());
-            opus_buffers.push_back({data, opus_size});
-        }
-    }
-
-    Message("Start playing...\n");
-    while (true)
-    {
-        if (opus_buffers.size() == 0)
-        {
-            break;
-        }
-        g_SectionNumber += 1;
-        INetworkMessageInternal *pSVC_VoiceData = g_pNetworkMessages->FindNetworkMessageById(47);
-        CNetMessagePB<CSVCMsg_VoiceData> *pData = pSVC_VoiceData->AllocateMessage()->ToPB<CSVCMsg_VoiceData>();
-        pData->set_client(g_AudioPlayerClient->GetPlayerSlot().Get());
-        pData->set_xuid(0);
-        CMsgVoiceAudio *audio = pData->mutable_audio();
-        std::string voice_data;
-        int num_packets = 0;
-        int packet_offsets = 0;
-        for (int i = 0; i < 4; i++)
-        {
-            if (opus_buffers.size() == 0)
-            {
-                continue;
-            }
-            OpusBuffer buf = opus_buffers.front();
-            voice_data.append(buf.data);
-            audio->add_packet_offsets(packet_offsets + buf.opus_size);
-            packet_offsets += buf.opus_size;
-            opus_buffers.erase(opus_buffers.begin());
-            num_packets += 1;
-        }
-        audio->set_allocated_voice_data(&voice_data);
-        audio->set_format(VoiceDataFormat_t::VOICEDATA_FORMAT_OPUS);
-        audio->set_sample_rate(SAMPLERATE);
-        audio->set_sequence_bytes(0);
-        audio->set_num_packets(num_packets);
-        // not sure if this is correct
-        audio->set_section_number(g_SectionNumber);
-        audio->set_voice_level(voice_level);
         CUtlVector<CServerSideClient *> *client_list = GetClientList();
+        if (client_list->Count() == 0)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(39));
+            continue;
+        }
+        SVCVoiceDataMessage all_data;
+        if (!g_GlobalAudioBuffer.empty())
+        {
+            // voicelevel need to be reset before send
+            all_data = g_GlobalAudioBuffer.front();
+            g_GlobalAudioBuffer.erase(g_GlobalAudioBuffer.begin());
+        }
+
         for (int i = 0; i < client_list->Count(); i++)
         {
             if (!client_list->IsValidIndex(i))
@@ -235,13 +120,35 @@ void ProcessAudio(std::string filename, float voice_level)
             CServerSideClient *client = client_list->Element(i);
             if (client->IsInGame() && !client->IsFakePlayer() && !client->IsHLTV())
             {
-                client->GetNetChannel()->SendNetMessage(pData, NetChannelBufType_t::BUF_VOICE);
+                SVCVoiceDataMessage data;
+                int slot = client->GetPlayerSlot().Get();
+                if (all_data.msg)
+                {
+                    data = all_data;
+                }
+                std::vector<SVCVoiceDataMessage> playerBuffer = g_PlayerAudioBuffer[slot];
+                if (!playerBuffer.empty())
+                {
+                    data = playerBuffer.front();
+                    playerBuffer.erase(playerBuffer.begin());
+                }
+                if (IsHearing(slot) && data.msg)
+                {
+                    // data.msg->mutable_audio()->set_voice_level(GetPlayerVolume(slot));
+                    data.msg->mutable_audio()->set_allocated_voice_data(&data.voice_data);
+                    // my test:
+                    // real player -> play from real player
+                    // fake client -> play from a bot which has no team, need sv_alltalk 1
+                    // 1 (non-exist but legit client index) -> a skeleton icon with no name playing the audio, no need sv_alltalk 1
+                    // 1337 (non-exist and illegal client index) -> no display, but still playing audio, no need sv_alltalk 1
+                    // btw, calling CreateFakeClient in this thread will cause weird bug in counterstrikesharp
+                    data.msg->set_client(1337);
+                    client->GetNetChannel()->SendNetMessage(data.msg, NetChannelBufType_t::BUF_VOICE);
+                }
             }
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(39));
     }
-    g_bPlaying = false;
-    return;
 }
 bool AudioPlayer::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
@@ -277,6 +184,19 @@ bool AudioPlayer::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, b
     //     int sig_error;
     //     g_pfnSVBroadcastVoiceData = (SV_BroadcastVoiceData_t)engine->FindSignature(SV_BroadcastVoiceData_Sig, sizeof(SV_BroadcastVoiceData_Sig) - 1, sig_error);
     //     g_pfnCMsgVoiceAudioConstructor = (CMSgVoiceAudio_Constructor_t)engine->FindSignature(CMsgVoiceAudio_Constructor_Sig, sizeof(CMsgVoiceAudio_Constructor_Sig) - 1, sig_error);
+
+    char tempDir[512];
+    ismm->Format(tempDir, sizeof(tempDir), "%s/addons/audioplayer/temp", ismm->GetBaseDir());
+    std::filesystem::create_directory(tempDir);
+    g_TempDir = std::string(tempDir);
+    for (char &ch : g_TempDir)
+    {
+        if (ch == '\\')
+        {
+            ch = '/';
+        }
+    }
+    InitializeGlobals();
     return true;
 }
 
@@ -294,6 +214,8 @@ bool AudioPlayer::Unload(char *error, size_t maxlen)
     if (encoder)
         delete encoder;
 
+    initialized = false;
+    g_bPlaying = false;
     return true;
 }
 
@@ -317,6 +239,13 @@ void AudioPlayer::Hook_StartupServer(const GameSessionConfiguration_t &config, I
 {
     g_pNetworkGameServer = g_pNetworkServerService->GetIGameServer();
     RegisterEventListeners();
+    if (!initialized)
+    {
+        VoiceDataSendingThread = std::thread(SendVoiceDataLoop);
+        VoiceDataSendingThread.detach();
+        initialized = true;
+    }
+    // g_bPlaying = 1;
 }
 
 int AudioPlayer::Hook_LoadEventsFromFile(const char *filename, bool bSearchAll)
@@ -324,19 +253,6 @@ int AudioPlayer::Hook_LoadEventsFromFile(const char *filename, bool bSearchAll)
     ExecuteOnce(g_gameEventManager = META_IFACEPTR(IGameEventManager2));
 
     RETURN_META_VALUE(MRES_IGNORED, 0);
-}
-
-bool CAudioPlayerInterface::PlayAudio(std::string filename, float voice_level)
-{
-    if (g_bPlaying)
-    {
-        Panic("Already playing!");
-        return 0;
-    }
-    g_AudioPlayerClient = GetFakeClient("[AUDIOPLAYER] Player");
-    std::thread processThread(ProcessAudio, filename, voice_level);
-    processThread.detach();
-    return 1;
 }
 
 const char *AudioPlayer::GetLicense()

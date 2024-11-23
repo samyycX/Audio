@@ -1,13 +1,19 @@
 # AudioPlayer
 A demo and a metamod lib to provide similar functions to the previous SM-Ext-Audio extension in csgo, that is, sending custom audio streams such as a song through a bot's voice chat.
 
-> [!WARNING]
-> Will auto enable `sv_alltalk 1`.
+## Table of Contents
+- [Demo](#demo)
+- [Prerequisites](#prerequisites)
+- [Metamod API Usage](#metamod-api-usage)
+- [Counterstrikesharp API Usage](#counterstrikesharp-api-usage)
+- [Crash / Not working](#crash--not-working)
+- [Credits](#credits)
+
 
 ## Prerequisites
-1. ffmpeg
+1. ffmpeg installed and can be found in your PATH.
 
-## API Usage
+## Metamod API Usage
 1. Include the `iaudioplayer.h` in `public` folder.
 2. Query the interface in `AllPluginsLoaded` and use it like this:
 ```c++
@@ -15,13 +21,21 @@ A demo and a metamod lib to provide similar functions to the previous SM-Ext-Aud
 IAudioPlayer *pAudioPlayer = (IAudioPlayer*)g_SMAPI->MetaFactory(AUDIOPLAYER_INTERFACE, nullptr, nullptr);
 
 // wherever you like
-pAudioPlayer->PlayAudio(std::string file_path, float voice_level);
+std::string str = "D:/xxx.mp3";
+pInterface->SetAllAudioFile(str.c_str(), str.size());
 ```
+Further API methods are in the `iaudioplayer.h` interface doc.
 
-### `IAudioPlayer::PlayAudio`
-Params:
-- `file_path`: Path to any audio file that can be decoded by ffmpeg is fine, such as mp3, wav
-- `voice_level`: Basically it's voice volume, most of the time it's negative.
+## Counterstrikesharp API Usage
+1. Copy the `AudioPlayer.cs` in `public` folder to your project.
+2. Use it.
+
+Further API methods are in the `iaudioplayer.h` interface doc.
+> [!IMPORTANT]
+> You might need to explicitly set `DllName` to `audioplayer.so` to support linux.
+
+## Crash / Not working
+I don't have the ability to fully test this plugin, if you have any problem, please submit an issue and describe your problem as precise as you can.
 
 ## Credits
 - **CS2Fixes**: Copied some codes from it.

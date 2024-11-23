@@ -147,7 +147,7 @@ target("linux")
         "COMPILER_GCC",
         "PLATFORM_64BITS",
         "META_IS_SOURCE2",
-        "_GLIBCXX_USE_CXX11_ABI=1"
+        "_GLIBCXX_USE_CXX11_ABI=0"
     })
 
     set_languages("cxx20")
