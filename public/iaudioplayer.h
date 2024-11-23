@@ -21,7 +21,7 @@ public:
    * @param slot - player slot to get
    * @return whether player can hear
    */
-  virtual bool IsHearing(int slot);
+  virtual bool IsHearing(int slot) = 0;
 
   /*
    * @param slot - player slot to set
@@ -53,9 +53,9 @@ public:
    * @param slot - player slot to get
    * @return whether there are audio playing for a specific player
    */
-  virtual bool IsPlaying(int slot);
+  virtual bool IsPlaying(int slot) = 0;
   /*
    * @return whether there are audio playing for all players
    */
-  virtual bool IsAllPlaying();
+  virtual bool IsAllPlaying() = 0;
 };

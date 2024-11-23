@@ -1,5 +1,5 @@
 #include <string>
-#include "../public/iaudioplayer.h"
+#include <iaudioplayer.h>
 
 // not using
 // /*
@@ -31,16 +31,16 @@ bool IsAllPlaying();
 class CAudioPlayerInterface : IAudioPlayer
 {
 public:
-  void SetPlayerHearing(int slot, bool hearing) override;
-  void SetAllPlayerHearing(bool hearing) override;
-  bool IsHearing(int slot) override;
+  virtual void SetPlayerHearing(int slot, bool hearing) override;
+  virtual void SetAllPlayerHearing(bool hearing) override;
+  virtual bool IsHearing(int slot) override;
 
-  void SetPlayerAudioBuffer(int slot, const char *audioBuffer, int audioBufferSize) override;
-  void SetPlayerAudioFile(int slot, const char *audioFile, int audioFileSize) override;
-  void SetAllAudioBuffer(const char *audioBuffer, int audioBufferSize) override;
-  void SetAllAudioFile(const char *audioFile, int audioFileSize) override;
-  bool IsPlaying(int slot) override;
-  bool IsAllPlaying() override;
+  virtual void SetPlayerAudioBuffer(int slot, const char *audioBuffer, int audioBufferSize) override;
+  virtual void SetPlayerAudioFile(int slot, const char *audioFile, int audioFileSize) override;
+  virtual void SetAllAudioBuffer(const char *audioBuffer, int audioBufferSize) override;
+  virtual void SetAllAudioFile(const char *audioFile, int audioFileSize) override;
+  virtual bool IsPlaying(int slot) override;
+  virtual bool IsAllPlaying() override;
 };
 
 #ifdef PLATFORM_LINUX
