@@ -43,13 +43,19 @@ public:
   bool IsAllPlaying() override;
 };
 
+#ifdef PLATFORM_LINUX
+#define PINVOKE_EXPORT __attribute__((visibility("default")))
+#else
+#define PINVOKE_EXPORT __declspec(dllexport)
+#endif
+
 extern "C"
 {
-  __declspec(dllexport) void NativeSetPlayerHearing(int slot, bool hearing);
-  __declspec(dllexport) void NativeSetAllPlayerHearing(bool hearing);
-  __declspec(dllexport) bool NativeIsHearing(int slot);
-  __declspec(dllexport) void NativeSetPlayerAudioBufferString(int slot, const char *audioBuffer, const char *audioPath);
-  __declspec(dllexport) void NativeSetAllAudioBufferString(const char *audioBuffer, const char *audioPath);
-  __declspec(dllexport) bool NativeIsPlaying(int slot);
-  __declspec(dllexport) bool NativeIsAllPlaying();
+  PINVOKE_EXPORT void NativeSetPlayerHearing(int slot, bool hearing);
+  PINVOKE_EXPORT void NativeSetAllPlayerHearing(bool hearing);
+  PINVOKE_EXPORT bool NativeIsHearing(int slot);
+  PINVOKE_EXPORT void NativeSetPlayerAudioBufferString(int slot, const char *audioBuffer, int audioBufferSize, const char *audioPath, int audioPathSize);
+  PINVOKE_EXPORT void NativeSetAllAudioBufferString(const char *audioBuffer, int audioBufferSize, const char *audioPath, int audioPathSize);
+  PINVOKE_EXPORT bool NativeIsPlaying(int slot);
+  PINVOKE_EXPORT bool NativeIsAllPlaying();
 }

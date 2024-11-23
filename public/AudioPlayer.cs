@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-public static class AudioPlayer
+public unsafe static class AudioPlayer
 {
 #if _WINDOWS
   private const string DllName = "audioplayer.dll";
@@ -22,10 +22,10 @@ public static class AudioPlayer
     public static extern bool NativeIsHearing(int slot);
 
     [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void NativeSetPlayerAudioBufferString(int slot, string audioBuffer, string audioPath);
+    public static extern void NativeSetPlayerAudioBufferString(int slot, [MarshalAs(UnmanagedType.LPArray)] byte[] audioBuffer, int audioBufferSize, string audioPath, int audioPathSize);
 
-    [DllImport(DllName, CallingConvention = CallingConvention.StdCall)]
-    public static extern void NativeSetAllAudioBufferString(string audioBuffer, string audioPath);
+    [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void NativeSetAllAudioBufferString([MarshalAs(UnmanagedType.LPArray)] byte[] audioBuffer, int audioBufferSize, string audioPath, int audioPathSize);
 
     [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.I1)]
@@ -67,9 +67,9 @@ public static class AudioPlayer
   * @param audioBuffer - buffer string, contains audio data (like mp3, wav), will be decoded to pcm by ffmpeg,
     pass empty string means stop playing
   */
-  public static void SetPlayerAudioBuffer(int slot, string audioBuffer)
+  public static void SetPlayerAudioBuffer(int slot, byte[] audioBuffer)
   {
-    NativeMethods.NativeSetPlayerAudioBufferString(slot, audioBuffer, "");
+    NativeMethods.NativeSetPlayerAudioBufferString(slot, audioBuffer, audioBuffer.Length, "", 0);
   }
 
   /*
@@ -79,16 +79,16 @@ public static class AudioPlayer
   */
   public static void SetPlayerAudioFile(int slot, string audioFile)
   {
-    NativeMethods.NativeSetPlayerAudioBufferString(slot, "", audioFile);
+    NativeMethods.NativeSetPlayerAudioBufferString(slot, [], 0, audioFile, audioFile.Length);
   }
 
   /*
   * @param audioBuffer - buffer string, contains audio data (like mp3, wav), will be decoded to pcm by ffmpeg,
     pass empty string means stop playing
   */
-  public static void SetAllAudioBuffer(string audioBuffer)
+  public static void SetAllAudioBuffer(byte[] audioBuffer)
   {
-    NativeMethods.NativeSetAllAudioBufferString(audioBuffer, "");
+    NativeMethods.NativeSetAllAudioBufferString(audioBuffer, audioBuffer.Length, "", 0);
   }
 
   /*
@@ -97,7 +97,7 @@ public static class AudioPlayer
   */
   public static void SetAllAudioFile(string audioFile)
   {
-    NativeMethods.NativeSetAllAudioBufferString("", audioFile);
+    NativeMethods.NativeSetAllAudioBufferString([], 0, audioFile, audioFile.Length);
   }
 
   /*

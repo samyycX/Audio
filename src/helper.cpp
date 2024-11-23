@@ -82,7 +82,7 @@ std::vector<uint8_t> ConvertAudioBufferToPCM(std::string file_path)
   return outputBuffer;
 }
 
-std::vector<SVCVoiceDataMessage> FillVoiceMessage(std::vector<std::string> &buffers, CServerSideClient *sender, float factor)
+std::vector<SVCVoiceDataMessage> FillVoiceMessage(std::vector<std::string> &buffers, CServerSideClient *sender, float voicelevel)
 {
   std::vector<SVCVoiceDataMessage> result;
   while (true)
@@ -121,7 +121,7 @@ std::vector<SVCVoiceDataMessage> FillVoiceMessage(std::vector<std::string> &buff
     audio->set_num_packets(num_packets);
     // not sure if this is correct
     audio->set_section_number(g_SectionNumber);
-    audio->set_voice_level(factor);
+    audio->set_voice_level(voicelevel);
     result.push_back(SVCVoiceDataMessage({voice_data, pData}));
   }
 
@@ -150,6 +150,7 @@ void ProcessVoiceData(std::string audioBuffer, std::string audioPath, float volu
     }
     catch (const std::exception &e)
     {
+      std::filesystem::remove(path);
       Panic(e.what());
       return;
     }

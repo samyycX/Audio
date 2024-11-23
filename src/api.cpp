@@ -194,14 +194,20 @@ bool NativeIsHearing(int slot)
   return IsHearing(slot);
 }
 
-void NativeSetPlayerAudioBufferString(int slot, const char *audioBuffer, const char *audioPath)
+void NativeSetPlayerAudioBufferString(int slot, const char *audioBuffer, int audioBufferSize, const char *audioPath, int audioPathSize)
 {
-  SetPlayerAudioBufferString(slot, std::string(audioBuffer), std::string(audioPath));
+  auto data1 = std::string(audioBuffer, audioBufferSize);
+  auto data2 = std::string(audioPath, audioPathSize);
+
+  SetPlayerAudioBufferString(slot, data1, data2);
 }
 
-void NativeSetAllAudioBufferString(const char *audioBuffer, const char *audioPath)
+void NativeSetAllAudioBufferString(const char *audioBuffer, int audioBufferSize, const char *audioPath, int audioPathSize)
 {
-  SetAllAudioBufferString(std::string(audioBuffer), std::string(audioPath));
+  auto data1 = std::string(audioBuffer, audioBufferSize);
+  auto data2 = std::string(audioPath, audioPathSize);
+
+  SetAllAudioBufferString(data1, data2);
 }
 
 bool NativeIsPlaying(int slot)
