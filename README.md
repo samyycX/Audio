@@ -9,6 +9,9 @@ A demo and a metamod lib to provide similar functions to the previous SM-Ext-Aud
 - [Crash / Not working](#crash--not-working)
 - [Credits](#credits)
 
+## Demo
+*unmute the video*
+<div><video controls src="https://github.com/user-attachments/assets/27ca1fd5-6ae7-4d1f-be66-aa0bbea2fa22"></video></div>
 
 ## Prerequisites
 1. ffmpeg installed and can be found in your PATH.
