@@ -89,7 +89,7 @@ target("linux")
     add_headerfiles("src/**.h")
     add_headerfiles("public/**.h")
     add_packages("libopus")
-    set_symbols("hidden")
+    add_cxxflags("-fvisibility=default")
 
     add_files({
         "protobuf/generated/network_connection.pb.cc",

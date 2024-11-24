@@ -1,4 +1,4 @@
-#include "api.h"
+#include "audioapi.h"
 #include "globals.h"
 #include "helper.h"
 #include <iostream>
@@ -179,43 +179,46 @@ bool CAudioPlayerInterface::IsAllPlaying()
 //   return GetPlayerVolume(slot);
 // }
 
-void NativeSetPlayerHearing(int slot, bool hearing)
+extern "C"
 {
-  SetPlayerHearing(slot, hearing);
-}
+  void __cdecl NativeSetPlayerHearing(int slot, bool hearing)
+  {
+    SetPlayerHearing(slot, hearing);
+  }
 
-void NativeSetAllPlayerHearing(bool hearing)
-{
-  SetAllPlayerHearing(hearing);
-}
+  void __cdecl NativeSetAllPlayerHearing(bool hearing)
+  {
+    SetAllPlayerHearing(hearing);
+  }
 
-bool NativeIsHearing(int slot)
-{
-  return IsHearing(slot);
-}
+  bool __cdecl NativeIsHearing(int slot)
+  {
+    return IsHearing(slot);
+  }
 
-void NativeSetPlayerAudioBufferString(int slot, const char *audioBuffer, int audioBufferSize, const char *audioPath, int audioPathSize)
-{
-  auto data1 = std::string(audioBuffer, audioBufferSize);
-  auto data2 = std::string(audioPath, audioPathSize);
+  void __cdecl NativeSetPlayerAudioBufferString(int slot, const char *audioBuffer, int audioBufferSize, const char *audioPath, int audioPathSize)
+  {
+    auto data1 = std::string(audioBuffer, audioBufferSize);
+    auto data2 = std::string(audioPath, audioPathSize);
 
-  SetPlayerAudioBufferString(slot, data1, data2);
-}
+    SetPlayerAudioBufferString(slot, data1, data2);
+  }
 
-void NativeSetAllAudioBufferString(const char *audioBuffer, int audioBufferSize, const char *audioPath, int audioPathSize)
-{
-  auto data1 = std::string(audioBuffer, audioBufferSize);
-  auto data2 = std::string(audioPath, audioPathSize);
+  void __cdecl NativeSetAllAudioBufferString(const char *audioBuffer, int audioBufferSize, const char *audioPath, int audioPathSize)
+  {
+    auto data1 = std::string(audioBuffer, audioBufferSize);
+    auto data2 = std::string(audioPath, audioPathSize);
 
-  SetAllAudioBufferString(data1, data2);
-}
+    SetAllAudioBufferString(data1, data2);
+  }
 
-bool NativeIsPlaying(int slot)
-{
-  return IsPlaying(slot);
-}
+  bool __cdecl NativeIsPlaying(int slot)
+  {
+    return IsPlaying(slot);
+  }
 
-bool NativeIsAllPlaying()
-{
-  return IsAllPlaying();
+  bool __cdecl NativeIsAllPlaying()
+  {
+    return IsAllPlaying();
+  }
 }

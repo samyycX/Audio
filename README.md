@@ -4,6 +4,7 @@ A demo and a metamod lib to provide similar functions to the previous SM-Ext-Aud
 ## Table of Contents
 - [Demo](#demo)
 - [Prerequisites](#prerequisites)
+- [LINUX USER MUST READ](#linux-user-must-read)
 - [Metamod API Usage](#metamod-api-usage)
 - [Counterstrikesharp API Usage](#counterstrikesharp-api-usage)
 - [Crash / Not working](#crash--not-working)
@@ -15,6 +16,13 @@ A demo and a metamod lib to provide similar functions to the previous SM-Ext-Aud
 
 ## Prerequisites
 1. ffmpeg installed and can be found in your PATH.
+
+## LINUX USER MUST READ
+If you are using linux and want to use it in counterstrikesharp, after you installed the plugin you need to execute this (replace `{YOUR VERSION}` with your actual dir name)
+```
+ln -s ./game/csgo/addons/audioplayer/bin/audioplayer.so ./game/csgo/addons/counterstrikesharp/dotnet/shared/Microsoft.NETCore.App/{YOUR VERSION}/audioplayer.so
+```
+in your server root directory.
 
 ## Metamod API Usage
 1. Include the `iaudioplayer.h` in `public` folder.

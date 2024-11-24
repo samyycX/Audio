@@ -12,11 +12,11 @@ public:
    * @param slot - player slot to set
    * @param hearing - whether player can hear
    */
-  virtual void SetPlayerHearing(int slot, bool hearing);
+  virtual void SetPlayerHearing(int slot, bool hearing) = 0;
   /*
    * @param hearing - whether player can hear
    */
-  virtual void SetAllPlayerHearing(bool hearing);
+  virtual void SetAllPlayerHearing(bool hearing) = 0;
   /*
    * @param slot - player slot to get
    * @return whether player can hear
@@ -29,26 +29,26 @@ public:
      pass null and 0 size means stop playing
      @param audioBufferSize - the size of audioBuffer
    */
-  virtual void SetPlayerAudioBuffer(int slot, const char *audioBuffer, int audioBufferSize);
+  virtual void SetPlayerAudioBuffer(int slot, const char *audioBuffer, int audioBufferSize) = 0;
   /*
    * @param slot - player slot to set
    * @param audioFile - audio file path, must be absolute path to a audio file (like mp3, wav),
      will be decoded to pcm by ffmpeg
      @param audioFileSize - the size of audioFile
    */
-  virtual void SetPlayerAudioFile(int slot, const char *audioFile, int audioFileSize);
+  virtual void SetPlayerAudioFile(int slot, const char *audioFile, int audioFileSize) = 0;
   /*
    * @param audioBuffer - buffer string, contains audio data (like mp3, wav), will be decoded to pcm by ffmpeg,
      pass null and 0 size means stop playing
      @param audioBufferSize - the size of audioBuffer
    */
-  virtual void SetAllAudioBuffer(const char *audioBuffer, int audioBufferSize);
+  virtual void SetAllAudioBuffer(const char *audioBuffer, int audioBufferSize) = 0;
   /*
    * @param audioFile - audio file path, must be absolute path to a audio file (like mp3, wav),
      will be decoded to pcm by ffmpeg
      @param audioFileSize - the size of audioFile
    */
-  virtual void SetAllAudioFile(const char *audioFile, int audioFileSize);
+  virtual void SetAllAudioFile(const char *audioFile, int audioFileSize) = 0;
   /*
    * @param slot - player slot to get
    * @return whether there are audio playing for a specific player

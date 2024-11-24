@@ -23,7 +23,7 @@
 #include "tier1/strtools.h"
 #include "helper.h"
 #include "globals.h"
-#include "api.h"
+#include "audioapi.h"
 #include <networksystem/inetworkmessages.h>
 #include <networksystem/inetworkserializer.h>
 #include "../protobuf/generated/netmessages.pb.h"
@@ -262,7 +262,7 @@ const char *AudioPlayer::GetLicense()
 
 const char *AudioPlayer::GetVersion()
 {
-    return "1.1.0";
+    return "1.1.1";
 }
 
 const char *AudioPlayer::GetDate()
