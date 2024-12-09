@@ -1,41 +1,54 @@
-using System;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 public unsafe static class AudioPlayer
 {
-#if _WINDOWS
-  private const string DllName = "audioplayer.dll";
-#else
-  private const string DllName = "audioplayer.so";
-#endif
-
   private static class NativeMethods
   {
-    [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("audioplayer", CallingConvention = CallingConvention.Cdecl)]
     public static extern void NativeSetPlayerHearing(int slot, bool hearing);
 
-    [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("audioplayer", CallingConvention = CallingConvention.Cdecl)]
     public static extern void NativeSetAllPlayerHearing(bool hearing);
 
-    [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("audioplayer", CallingConvention = CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.I1)]
     public static extern bool NativeIsHearing(int slot);
 
-    [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("audioplayer", CallingConvention = CallingConvention.Cdecl)]
     public static extern void NativeSetPlayerAudioBufferString(int slot, [MarshalAs(UnmanagedType.LPArray)] byte[] audioBuffer, int audioBufferSize, string audioPath, int audioPathSize);
 
-    [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("audioplayer", CallingConvention = CallingConvention.Cdecl)]
     public static extern void NativeSetAllAudioBufferString([MarshalAs(UnmanagedType.LPArray)] byte[] audioBuffer, int audioBufferSize, string audioPath, int audioPathSize);
 
-    [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("audioplayer", CallingConvention = CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.I1)]
     public static extern bool NativeIsPlaying(int slot);
 
-    [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("audioplayer", CallingConvention = CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.I1)]
     public static extern bool NativeIsAllPlaying();
-  }
 
+    private static IntPtr DllImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
+    {
+      if (libraryName == "audioplayer")
+      {
+        return NativeLibrary.Load(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "audioplayer.dll" : "audioplayer.so", assembly, searchPath);
+      }
+
+      return IntPtr.Zero;
+    }
+
+    private static void SetDllImportResolver()
+    {
+      NativeLibrary.SetDllImportResolver(Assembly.GetExecutingAssembly(), DllImportResolver);
+    }
+
+    static NativeMethods()
+    {
+      SetDllImportResolver();
+    }
+  }
   /*
   * @param slot - player slot to set
   * @param hearing - whether player can hear
