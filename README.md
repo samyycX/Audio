@@ -42,8 +42,6 @@ Further API methods are in the `iaudioplayer.h` interface doc.
 2. Use it.
 
 Further API methods are in the `iaudioplayer.h` interface doc.
-> [!IMPORTANT]
-> You might need to explicitly set `DllName` to `audioplayer.so` to support linux.
 
 ## Crash / Not working
 I don't have the ability to fully test this plugin, if you have any problem, please submit an issue and describe your problem as precise as you can.
