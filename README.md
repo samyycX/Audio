@@ -20,7 +20,7 @@ A demo and a metamod lib to provide similar functions to the previous SM-Ext-Aud
 ## LINUX USER MUST READ
 If you are using linux and want to use it in counterstrikesharp, after you installed the plugin you need to execute this (replace `{YOUR VERSION}` with your actual dir name)
 ```
-ln -s ./game/csgo/addons/audioplayer/bin/audioplayer.so ./game/csgo/addons/counterstrikesharp/dotnet/shared/Microsoft.NETCore.App/{YOUR VERSION}/audioplayer.so
+ln -s /path/to/game/csgo/addons/audioplayer/bin/audioplayer.so /path/to/game/csgo/addons/counterstrikesharp/dotnet/shared/Microsoft.NETCore.App/{YOUR VERSION}/audioplayer.so
 ```
 in your server root directory.
 
