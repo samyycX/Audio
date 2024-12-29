@@ -114,7 +114,8 @@ void SendVoiceDataLoop()
                 // call all play end listeners
                 for (auto &callback : g_PlayEndListeners)
                 {
-                    callback(-1);
+                    if (callback != nullptr)
+                        callback(-1);
                 }
             }
         }
@@ -144,7 +145,8 @@ void SendVoiceDataLoop()
                         // call all play end listeners
                         for (auto &callback : g_PlayEndListeners)
                         {
-                            callback(slot);
+                            if (callback != nullptr)
+                                callback(slot);
                         }
                     }
                 }
@@ -166,6 +168,13 @@ void SendVoiceDataLoop()
         std::this_thread::sleep_for(std::chrono::milliseconds(39));
     }
 }
+
+template <typename T>
+google::protobuf::Message &CreateMessage()
+{
+    T msg;
+}
+
 bool AudioPlayer::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
     PLUGIN_SAVEVARS();

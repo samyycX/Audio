@@ -53,6 +53,11 @@ void SetPlayerAudioBufferString(int slot, std::string audioBuffer, std::string a
   {
     std::unique_lock<std::shared_mutex> lock(g_Mutex);
     g_PlayerAudioBuffer[slot].clear();
+    for (auto &callback : g_PlayEndListeners)
+    {
+      if (callback != nullptr)
+        callback(slot);
+    }
     return;
   }
   auto lambda = [slot](std::vector<SVCVoiceDataMessage> msgbuffer)
@@ -61,7 +66,8 @@ void SetPlayerAudioBufferString(int slot, std::string audioBuffer, std::string a
     g_PlayerAudioBuffer[slot] = msgbuffer;
     for (auto &callback : g_PlayStartListeners)
     {
-      callback(slot);
+      if (callback != nullptr)
+        callback(slot);
     }
   };
   std::thread process(ProcessVoiceData, audioBuffer, audioPath, 1, lambda);
@@ -74,6 +80,11 @@ void SetAllAudioBufferString(std::string audioBuffer, std::string audioPath)
   {
     std::unique_lock<std::shared_mutex> lock(g_Mutex);
     g_GlobalAudioBuffer.clear();
+    for (auto &callback : g_PlayEndListeners)
+    {
+      if (callback != nullptr)
+        callback(-1);
+    }
     return;
   }
   auto lambda = [](std::vector<SVCVoiceDataMessage> msgbuffer)
@@ -82,7 +93,8 @@ void SetAllAudioBufferString(std::string audioBuffer, std::string audioPath)
     g_GlobalAudioBuffer = msgbuffer;
     for (auto &callback : g_PlayStartListeners)
     {
-      callback(-1);
+      if (callback != nullptr)
+        callback(-1);
     }
   };
   std::thread process(ProcessVoiceData, audioBuffer, audioPath, 1, lambda);
@@ -103,27 +115,41 @@ bool IsAllPlaying()
 int RegisterPlayStartListener(PLAY_START_CALLBACK callback)
 {
   std::unique_lock<std::shared_mutex> lock(g_Mutex);
-  g_PlayStartListeners.push_back(callback);
-  return g_PlayStartListeners.size() - 1;
+  for (int i = 0; i < MAX_LISTENERS; i++)
+  {
+    if (g_PlayStartListeners[i] == nullptr)
+    {
+      g_PlayStartListeners[i] = callback;
+      return i;
+    }
+  }
+  return -1;
 }
 
 void UnregisterPlayStartListener(int id)
 {
   std::unique_lock<std::shared_mutex> lock(g_Mutex);
-  g_PlayStartListeners.erase(g_PlayStartListeners.begin() + id);
+  g_PlayStartListeners[id] = nullptr;
 }
 
 int RegisterPlayEndListener(PLAY_END_CALLBACK callback)
 {
   std::unique_lock<std::shared_mutex> lock(g_Mutex);
-  g_PlayEndListeners.push_back(callback);
-  return g_PlayEndListeners.size() - 1;
+  for (int i = 0; i < MAX_LISTENERS; i++)
+  {
+    if (g_PlayEndListeners[i] == nullptr)
+    {
+      g_PlayEndListeners[i] = callback;
+      return i;
+    }
+  }
+  return -1;
 }
 
 void UnregisterPlayEndListener(int id)
 {
   std::unique_lock<std::shared_mutex> lock(g_Mutex);
-  g_PlayEndListeners.erase(g_PlayEndListeners.begin() + id);
+  g_PlayEndListeners[id] = nullptr;
 }
 
 // void CAudioPlayerInterface::SetPlayerVolume(int slot, float factor)
