@@ -3,6 +3,9 @@ using System.Runtime.InteropServices;
 
 public unsafe static class AudioPlayer
 {
+  public delegate void PlayStartHandler(int slot);
+  public delegate void PlayEndHandler(int slot);
+
   private static class NativeMethods
   {
     [DllImport("audioplayer", CallingConvention = CallingConvention.Cdecl)]
@@ -29,6 +32,18 @@ public unsafe static class AudioPlayer
     [return: MarshalAs(UnmanagedType.I1)]
     public static extern bool NativeIsAllPlaying();
 
+    [DllImport("audioplayer", CallingConvention = CallingConvention.Cdecl)]
+    public static extern int NativeRegisterPlayStartListener([MarshalAs(UnmanagedType.FunctionPtr)] PlayStartHandler callback);
+
+    [DllImport("audioplayer", CallingConvention = CallingConvention.Cdecl)]
+    public static extern void NativeUnregisterPlayStartListener(int id);
+
+    [DllImport("audioplayer", CallingConvention = CallingConvention.Cdecl)]
+    public static extern int NativeRegisterPlayEndListener([MarshalAs(UnmanagedType.FunctionPtr)] PlayEndHandler callback);
+
+    [DllImport("audioplayer", CallingConvention = CallingConvention.Cdecl)]
+    public static extern void NativeUnregisterPlayEndListener(int id);
+
     private static IntPtr DllImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
     {
       if (libraryName == "audioplayer")
@@ -49,6 +64,10 @@ public unsafe static class AudioPlayer
       SetDllImportResolver();
     }
   }
+
+  private static Dictionary<PlayStartHandler, int> _PlayStartListeners = new Dictionary<PlayStartHandler, int>();
+  private static Dictionary<PlayEndHandler, int> _PlayEndListeners = new Dictionary<PlayEndHandler, int>();
+
   /*
   * @param slot - player slot to set
   * @param hearing - whether player can hear
@@ -128,5 +147,47 @@ public unsafe static class AudioPlayer
   public static bool IsAllPlaying()
   {
     return NativeMethods.NativeIsAllPlaying();
+  }
+
+  /*
+  * @param handler - play start handler
+  * @return id - listener id, you can ignore it
+  * @note the slot will be either player slot or -1, -1 means all players
+  */
+  public static int RegisterPlayStartListener(PlayStartHandler handler)
+  {
+    var id = NativeMethods.NativeRegisterPlayStartListener(handler);
+    _PlayStartListeners[handler] = id;
+    return id;
+  }
+
+  /*
+  * @param handler - play start handler
+  */
+  public static void UnregisterPlayStartListener(PlayStartHandler handler)
+  {
+    NativeMethods.NativeUnregisterPlayStartListener(_PlayStartListeners[handler]);
+    _PlayStartListeners.Remove(handler);
+  }
+
+  /*
+  * @param handler - play end handler
+  * @return id - listener id, you can ignore it
+  * @note the slot will be either player slot or -1, -1 means all players
+  */
+  public static int RegisterPlayEndListener(PlayEndHandler handler)
+  {
+    var id = NativeMethods.NativeRegisterPlayEndListener(handler);
+    _PlayEndListeners[handler] = id;
+    return id;
+  }
+
+  /*
+  * @param handler - play end handler
+  */
+  public static void UnregisterPlayEndListener(PlayEndHandler handler)
+  {
+    NativeMethods.NativeUnregisterPlayEndListener(_PlayEndListeners[handler]);
+    _PlayEndListeners.Remove(handler);
   }
 }
