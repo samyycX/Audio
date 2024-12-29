@@ -14,6 +14,8 @@ std::vector<SVCVoiceDataMessage> g_PlayerAudioBuffer[_MAX_SLOT] = {};
 std::vector<SVCVoiceDataMessage> g_GlobalAudioBuffer;
 bool g_PlayerHearing[_MAX_SLOT];
 float g_PlayerVolume[_MAX_SLOT];
+std::vector<PLAY_START_CALLBACK> g_PlayStartListeners;
+std::vector<PLAY_END_CALLBACK> g_PlayEndListeners;
 
 CServerSideClient *g_AudioPlayerClient;
 

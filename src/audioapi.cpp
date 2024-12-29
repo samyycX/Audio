@@ -59,6 +59,10 @@ void SetPlayerAudioBufferString(int slot, std::string audioBuffer, std::string a
   {
     std::unique_lock<std::shared_mutex> lock(g_Mutex);
     g_PlayerAudioBuffer[slot] = msgbuffer;
+    for (auto &callback : g_PlayStartListeners)
+    {
+      callback(slot);
+    }
   };
   std::thread process(ProcessVoiceData, audioBuffer, audioPath, 1, lambda);
   process.detach();
@@ -76,6 +80,10 @@ void SetAllAudioBufferString(std::string audioBuffer, std::string audioPath)
   {
     std::unique_lock<std::shared_mutex> lock(g_Mutex);
     g_GlobalAudioBuffer = msgbuffer;
+    for (auto &callback : g_PlayStartListeners)
+    {
+      callback(-1);
+    }
   };
   std::thread process(ProcessVoiceData, audioBuffer, audioPath, 1, lambda);
   process.detach();
@@ -91,6 +99,31 @@ bool IsAllPlaying()
 {
   std::shared_lock<std::shared_mutex> lock(g_Mutex);
   return g_GlobalAudioBuffer.size() > 0;
+}
+int RegisterPlayStartListener(PLAY_START_CALLBACK callback)
+{
+  std::unique_lock<std::shared_mutex> lock(g_Mutex);
+  g_PlayStartListeners.push_back(callback);
+  return g_PlayStartListeners.size() - 1;
+}
+
+void UnregisterPlayStartListener(int id)
+{
+  std::unique_lock<std::shared_mutex> lock(g_Mutex);
+  g_PlayStartListeners.erase(g_PlayStartListeners.begin() + id);
+}
+
+int RegisterPlayEndListener(PLAY_END_CALLBACK callback)
+{
+  std::unique_lock<std::shared_mutex> lock(g_Mutex);
+  g_PlayEndListeners.push_back(callback);
+  return g_PlayEndListeners.size() - 1;
+}
+
+void UnregisterPlayEndListener(int id)
+{
+  std::unique_lock<std::shared_mutex> lock(g_Mutex);
+  g_PlayEndListeners.erase(g_PlayEndListeners.begin() + id);
 }
 
 // void CAudioPlayerInterface::SetPlayerVolume(int slot, float factor)
@@ -163,6 +196,22 @@ bool CAudioPlayerInterface::IsAllPlaying()
 {
   return IsAllPlaying();
 }
+int CAudioPlayerInterface::RegisterPlayStartListener(PLAY_START_CALLBACK callback)
+{
+  return RegisterPlayStartListener(callback);
+}
+void CAudioPlayerInterface::UnregisterPlayStartListener(int id)
+{
+  UnregisterPlayStartListener(id);
+}
+int CAudioPlayerInterface::RegisterPlayEndListener(PLAY_END_CALLBACK callback)
+{
+  return RegisterPlayEndListener(callback);
+}
+void CAudioPlayerInterface::UnregisterPlayEndListener(int id)
+{
+  UnregisterPlayEndListener(id);
+}
 
 // void NativeSetPlayerVolume(int slot, float factor)
 // {
@@ -220,5 +269,25 @@ extern "C"
   bool __cdecl NativeIsAllPlaying()
   {
     return IsAllPlaying();
+  }
+
+  int __cdecl NativeRegisterPlayStartListener(PLAY_START_CALLBACK callback)
+  {
+    return RegisterPlayStartListener(callback);
+  }
+
+  void __cdecl NativeUnregisterPlayStartListener(int id)
+  {
+    UnregisterPlayStartListener(id);
+  }
+
+  int __cdecl NativeRegisterPlayEndListener(PLAY_END_CALLBACK callback)
+  {
+    return RegisterPlayEndListener(callback);
+  }
+
+  void __cdecl NativeUnregisterPlayEndListener(int id)
+  {
+    UnregisterPlayEndListener(id);
   }
 }

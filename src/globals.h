@@ -8,6 +8,9 @@
 #include <networksystem/inetworkserializer.h>
 #include "../protobuf/generated/netmessages.pb.h"
 
+typedef void (*PLAY_START_CALLBACK)(int);
+typedef void (*PLAY_END_CALLBACK)(int);
+
 // plugin
 extern int FRAMESIZE;
 extern int SAMPLERATE;
@@ -25,7 +28,9 @@ extern int MAX_SLOT;
 extern std::vector<SVCVoiceDataMessage> g_PlayerAudioBuffer[];
 extern std::vector<SVCVoiceDataMessage> g_GlobalAudioBuffer;
 extern bool g_PlayerHearing[];
-extern float g_PlayerVolume[];
+extern float g_PlayerVolume[]; // not implemented yet
+extern std::vector<PLAY_START_CALLBACK> g_PlayStartListeners;
+extern std::vector<PLAY_END_CALLBACK> g_PlayEndListeners;
 
 extern CServerSideClient *g_AudioPlayerClient;
 

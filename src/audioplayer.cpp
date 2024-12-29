@@ -109,6 +109,14 @@ void SendVoiceDataLoop()
             // voicelevel need to be reset before send
             all_data = g_GlobalAudioBuffer.front();
             g_GlobalAudioBuffer.erase(g_GlobalAudioBuffer.begin());
+            if (g_GlobalAudioBuffer.empty())
+            {
+                // call all play end listeners
+                for (auto &callback : g_PlayEndListeners)
+                {
+                    callback(-1);
+                }
+            }
         }
 
         for (int i = 0; i < client_list->Count(); i++)
@@ -131,6 +139,14 @@ void SendVoiceDataLoop()
                 {
                     data = playerBuffer.front();
                     playerBuffer.erase(playerBuffer.begin());
+                    if (playerBuffer.empty())
+                    {
+                        // call all play end listeners
+                        for (auto &callback : g_PlayEndListeners)
+                        {
+                            callback(slot);
+                        }
+                    }
                 }
                 if (IsHearing(slot) && data.msg)
                 {
@@ -142,7 +158,7 @@ void SendVoiceDataLoop()
                     // 1 (non-exist but legit client index) -> a skeleton icon with no name playing the audio, no need sv_alltalk 1
                     // 1337 (non-exist and illegal client index) -> no display, but still playing audio, no need sv_alltalk 1
                     // btw, calling CreateFakeClient in this thread will cause weird bug in counterstrikesharp
-                    data.msg->set_client(1337);
+                    data.msg->set_client(-1);
                     client->GetNetChannel()->SendNetMessage(data.msg, NetChannelBufType_t::BUF_VOICE);
                 }
             }
@@ -262,7 +278,7 @@ const char *AudioPlayer::GetLicense()
 
 const char *AudioPlayer::GetVersion()
 {
-    return "1.1.1";
+    return "1.2.0";
 }
 
 const char *AudioPlayer::GetDate()
