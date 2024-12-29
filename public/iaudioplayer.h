@@ -7,6 +7,10 @@
 
 class IAudioPlayer
 {
+
+  typedef void (*PLAY_START_HANDLER)(int);
+  typedef void (*PLAY_END_HANDLER)(int);
+
 public:
   /*
    * @param slot - player slot to set
@@ -58,4 +62,24 @@ public:
    * @return whether there are audio playing for all players
    */
   virtual bool IsAllPlaying() = 0;
+  /*
+   * @param handler - play start handler
+   * @return id - listener id, you can ignore it
+   * @note the slot will be either player slot or -1, -1 means all players
+   */
+  virtual int RegisterPlayStartListener(PLAY_START_HANDLER handler) = 0;
+  /*
+   * @param id - listener id
+   */
+  virtual void UnregisterPlayStartListener(int id) = 0;
+  /*
+   * @param handler - play end handler
+   * @return id - listener id, you can ignore it
+   * @note the slot will be either player slot or -1, -1 means all players
+   */
+  virtual int RegisterPlayEndListener(PLAY_END_HANDLER handler) = 0;
+  /*
+   * @param id - listener id
+   */
+  virtual void UnregisterPlayEndListener(int id) = 0;
 };
