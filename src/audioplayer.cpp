@@ -103,11 +103,11 @@ void SendVoiceDataLoop()
             std::this_thread::sleep_for(std::chrono::milliseconds(39));
             continue;
         }
-        SVCVoiceDataMessage all_data;
+        SVCVoiceDataMessage data;
         if (!g_GlobalAudioBuffer.empty())
         {
             // voicelevel need to be reset before send
-            all_data = g_GlobalAudioBuffer.front();
+            data = g_GlobalAudioBuffer.front();
             g_GlobalAudioBuffer.erase(g_GlobalAudioBuffer.begin());
             if (g_GlobalAudioBuffer.empty())
             {
@@ -129,12 +129,7 @@ void SendVoiceDataLoop()
             CServerSideClient *client = client_list->Element(i);
             if (client->IsInGame() && !client->IsFakePlayer() && !client->IsHLTV())
             {
-                SVCVoiceDataMessage data;
                 int slot = client->GetPlayerSlot().Get();
-                if (all_data.msg)
-                {
-                    data = all_data;
-                }
                 std::vector<SVCVoiceDataMessage> playerBuffer = g_PlayerAudioBuffer[slot];
                 if (!playerBuffer.empty())
                 {
@@ -150,29 +145,35 @@ void SendVoiceDataLoop()
                         }
                     }
                 }
+                if (!data.msg)
+                {
+                    continue;
+                }
+                INetworkMessageInternal *pSVC_VoiceData = g_pNetworkMessages->FindNetworkMessageById(47);
+                CNetMessagePB<CSVCMsg_VoiceData> *pData = pSVC_VoiceData->AllocateMessage()->ToPB<CSVCMsg_VoiceData>();
+                pData->CopyFrom(*data.msg);
                 if (IsHearing(slot) && data.msg)
                 {
                     // data.msg->mutable_audio()->set_voice_level(GetPlayerVolume(slot));
-                    data.msg->mutable_audio()->set_allocated_voice_data(&data.voice_data);
+                    std::string *copied_data = new std::string(data.voice_data);
+                    pData->mutable_audio()->set_allocated_voice_data(copied_data);
                     // my test:
                     // real player -> play from real player
                     // fake client -> play from a bot which has no team, need sv_alltalk 1
                     // 1 (non-exist but legit client index) -> a skeleton icon with no name playing the audio, no need sv_alltalk 1
                     // 1337 (non-exist and illegal client index) -> no display, but still playing audio, no need sv_alltalk 1
                     // btw, calling CreateFakeClient in this thread will cause weird bug in counterstrikesharp
-                    data.msg->set_client(-1);
-                    client->GetNetChannel()->SendNetMessage(data.msg, NetChannelBufType_t::BUF_VOICE);
+                    pData->set_client(-1);
+                    client->GetNetChannel()->SendNetMessage(pData, NetChannelBufType_t::BUF_VOICE);
                 }
             }
         }
+        if (data.msg)
+        {
+            data.Destroy();
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(39));
     }
-}
-
-template <typename T>
-google::protobuf::Message &CreateMessage()
-{
-    T msg;
 }
 
 bool AudioPlayer::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)

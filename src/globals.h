@@ -22,7 +22,17 @@ struct SVCVoiceDataMessage
 {
   std::string voice_data;
   CNetMessagePB<CSVCMsg_VoiceData> *msg = nullptr;
+
+  void Destroy();
 };
+
+inline void SVCVoiceDataMessage::Destroy()
+{
+  if (msg)
+  {
+    delete msg;
+  }
+}
 
 extern std::shared_mutex g_Mutex;
 extern int MAX_SLOT;
