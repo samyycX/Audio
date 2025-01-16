@@ -297,7 +297,7 @@ const char *AudioPlayer::GetLicense()
 
 const char *AudioPlayer::GetVersion()
 {
-    return "1.2.0";
+    return "1.2.2";
 }
 
 const char *AudioPlayer::GetDate()
