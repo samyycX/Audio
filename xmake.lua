@@ -152,6 +152,17 @@ target("linux")
 
     set_languages("cxx20")
 
+target("swext")  
+    set_filename("audio.ext.dll")
+    set_kind("shared")
+    set_plat("windows")
+    add_defines("PLATFORM_WINDOWS")
+    add_files("swext/**.cpp")
+    add_headerfiles("swext/**.h")
+    add_headerfiles("public/**.h")
+
+    set_languages("cxx20")
+
 xpack("audioplayer_linux")
     set_formats("zip")
     add_installfiles("build/linux/x86_64/release/audioplayer.so", {filename = "audioplayer.so", prefixdir = "audioplayer/bin"})
