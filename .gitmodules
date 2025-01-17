@@ -5,6 +5,3 @@
 [submodule ".deps/metamod-source"]
 	path = .deps/metamod-source
 	url = https://github.com/alliedmodders/metamod-source
-[submodule "vendor/swiftly-ext"]
-	path = vendor/swiftly-ext
-	url = https://github.com/swiftly-solution/swiftly-ext
