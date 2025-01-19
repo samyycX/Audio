@@ -22,7 +22,7 @@ public unsafe static class AudioPlayer
     public static extern void NativeSetPlayerAudioBufferString(int slot, [MarshalAs(UnmanagedType.LPArray)] byte[] audioBuffer, int audioBufferSize, string audioPath, int audioPathSize, float volume = 1f);
 
     [DllImport("audioplayer", CallingConvention = CallingConvention.Cdecl)]
-    public static extern void NativeSetAllAudioBufferString([MarshalAs(UnmanagedType.LPArray)] byte[] audioBuffer, int audioBufferSize, string audioPath, int audioPathSize, , float volume = 1f);
+    public static extern void NativeSetAllAudioBufferString([MarshalAs(UnmanagedType.LPArray)] byte[] audioBuffer, int audioBufferSize, string audioPath, int audioPathSize, float volume = 1f);
 
     [DllImport("audioplayer", CallingConvention = CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.I1)]
@@ -101,7 +101,7 @@ public unsafe static class AudioPlayer
   */
   public static void SetPlayerAudioBuffer(int slot, byte[] audioBuffer, float volume = 1f)
   {
-    NativeMethods.NativeSetPlayerAudioBufferString(slot, audioBuffer, audioBuffer.Length, "", 0, float volume = 1f);
+    NativeMethods.NativeSetPlayerAudioBufferString(slot, audioBuffer, audioBuffer.Length, "", 0, volume);
   }
 
   /*
@@ -111,7 +111,7 @@ public unsafe static class AudioPlayer
   */
   public static void SetPlayerAudioFile(int slot, string audioFile, float volume = 1f)
   {
-    NativeMethods.NativeSetPlayerAudioBufferString(slot, [], 0, audioFile, audioFile.Length, float volume = 1f);
+    NativeMethods.NativeSetPlayerAudioBufferString(slot, [], 0, audioFile, audioFile.Length, volume);
   }
 
   /*
@@ -120,7 +120,7 @@ public unsafe static class AudioPlayer
   */
   public static void SetAllAudioBuffer(byte[] audioBuffer, float volume = 1f)
   {
-    NativeMethods.NativeSetAllAudioBufferString(audioBuffer, audioBuffer.Length, "", 0, float volume = 1f);
+    NativeMethods.NativeSetAllAudioBufferString(audioBuffer, audioBuffer.Length, "", 0, volume);
   }
 
   /*
@@ -129,7 +129,7 @@ public unsafe static class AudioPlayer
   */
   public static void SetAllAudioFile(string audioFile, float volume = 1f)
   {
-    NativeMethods.NativeSetAllAudioBufferString([], 0, audioFile, audioFile.Length, float volume = 1f);
+    NativeMethods.NativeSetAllAudioBufferString([], 0, audioFile, audioFile.Length, volume);
   }
 
   /*
