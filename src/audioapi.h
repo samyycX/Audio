@@ -11,23 +11,32 @@
 // void SetAllPlayerVolume(float factor);
 // float GetPlayerVolume(int slot);
 
-/*
- * @param slot - player slot to set
- * @param hearing - whether player can hear
- */
-void SetPlayerHearing(int slot, bool hearing);
-void SetAllPlayerHearing(bool hearing);
-bool IsHearing(int slot);
+namespace api
+{
+  /*
+   * @param slot - player slot to set
+   * @param hearing - whether player can hear
+   */
+  void SetPlayerHearing(int slot, bool hearing);
+  void SetAllPlayerHearing(bool hearing);
+  bool IsHearing(int slot);
 
-/*
- * @param slot - player slot to set
- * @param voiceData - buffer string, contains pcm data, pass null means stop playing
- * either buffer or path
- */
-void SetPlayerAudioBufferString(int slot, std::string audioBuffer, std::string audioPath, float volume);
-void SetAllAudioBufferString(std::string audioBuffer, std::string audioPath, float volume);
-bool IsPlaying(int slot);
-bool IsAllPlaying();
+  /*
+   * @param slot - player slot to set
+   * @param voiceData - buffer string, contains pcm data, pass null means stop playing
+   * either buffer or path
+   */
+  void SetPlayerAudioBufferString(int slot, std::string audioBuffer, std::string audioPath, float volume);
+  void SetAllAudioBufferString(std::string audioBuffer, std::string audioPath, float volume);
+  bool IsPlaying(int slot);
+  bool IsAllPlaying();
+
+  int RegisterPlayStartListener(PLAY_START_CALLBACK callback);
+  void UnregisterPlayStartListener(int id);
+  int RegisterPlayEndListener(PLAY_END_CALLBACK callback);
+  void UnregisterPlayEndListener(int id);
+
+}
 
 class CAudioPlayerInterface : IAudioPlayer
 {

@@ -56,12 +56,3 @@ void UnregisterEventListeners()
 
 	g_vecEventListeners.Purge();
 }
-
-GAME_EVENT_F(round_start)
-{
-	g_bPlaying = 1;
-}
-GAME_EVENT_F(round_end)
-{
-	g_bPlaying = 0;
-}

@@ -128,7 +128,7 @@ std::vector<SVCVoiceDataMessage> FillVoiceMessage(std::vector<std::string> &buff
   return result;
 }
 
-void ProcessVoiceData(std::string audioBuffer, std::string audioPath, float volumeFactor, std::function<void(std::vector<SVCVoiceDataMessage>)> const &callback, float volumeLevel = 1.0)
+void ProcessVoiceData(std::string audioBuffer, std::string audioPath, std::function<void(std::vector<SVCVoiceDataMessage>)> const &callback, float volumeLevel = 1.0)
 {
   std::vector<std::string> opus_buffers;
   std::vector<uint8_t> buffer;
@@ -180,20 +180,20 @@ void ProcessVoiceData(std::string audioBuffer, std::string audioPath, float volu
     std::vector<uint8_t> extracted(buffer.begin(), buffer.begin() + frame_size);
     buffer.erase(buffer.begin(), buffer.begin() + frame_size);
 
-    for (int i = 0; i < extracted.size(); i += 2)
-    {
-      // custom volume is not enabled, all to 1
-      long data = ((short)((extracted[i + 1] << 8) | extracted[i])) * volumeFactor;
-      if (data < -32768)
-      {
-        data = -32768;
-      }
-      if (data > 32767)
-      {
-        data = 32767;
-      }
-      pcm_buffer[i / 2] = data & 0xFFFF;
-    }
+    // for (int i = 0; i < extracted.size(); i += 2)
+    // {
+    //   // custom volume is not enabled, all to 1
+    //   long data = ((short)((extracted[i + 1] << 8) | extracted[i])) * volumeFactor;
+    //   if (data < -32768)
+    //   {
+    //     data = -32768;
+    //   }
+    //   if (data > 32767)
+    //   {
+    //     data = 32767;
+    //   }
+    //   pcm_buffer[i / 2] = data & 0xFFFF;
+    // }
 
     int opus_size = opus_encode(encoder, pcm_buffer.data(), frame_size / 2,
                                 opus_buffer.data(), opus_buffer.size());

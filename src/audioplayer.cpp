@@ -147,7 +147,8 @@ void SendVoiceDataLoop()
             {
                 continue;
             }
-            if (!IsHearing(slot))
+
+            if (!api::IsHearing(slot))
                 continue;
             INetworkMessageInternal *pSVC_VoiceData = g_pNetworkMessages->FindNetworkMessageById(47);
             CNetMessagePB<CSVCMsg_VoiceData> *pData = pSVC_VoiceData->AllocateMessage()->ToPB<CSVCMsg_VoiceData>();
