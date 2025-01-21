@@ -48,7 +48,7 @@ namespace api
     std::shared_lock<std::shared_mutex> lock(g_Mutex);
     return g_PlayerHearing[slot];
   }
-  void SetPlayerAudioBufferString(int slot, std::string audioBuffer, std::string audioPath, float volume)
+  void PlayToPlayer(int slot, std::string audioBuffer, std::string audioPath, float volume)
   {
     if (audioBuffer.size() == 0 && audioPath.size() == 0)
     {
@@ -75,7 +75,7 @@ namespace api
     process.detach();
   }
 
-  void SetAllAudioBufferString(std::string audioBuffer, std::string audioPath, float volume)
+  void Play(std::string audioBuffer, std::string audioPath, float volume)
   {
     if (audioBuffer.size() == 0 && audioPath.size() == 0)
     {
@@ -180,42 +180,42 @@ bool CAudioInterface::IsHearing(int slot)
 {
   return api::IsHearing(slot);
 }
-void CAudioInterface::SetPlayerAudioBuffer(int slot, const char *audioBuffer, int audioBufferSize, float volume)
+void CAudioInterface::PlayToPlayerFromBuffer(int slot, const char *audioBuffer, int audioBufferSize, float volume)
 {
   if (audioBufferSize == 0 || audioBuffer == nullptr)
   {
-    api::SetPlayerAudioBufferString(slot, "", "", volume);
+    api::PlayToPlayer(slot, "", "", volume);
     return;
   }
-  api::SetPlayerAudioBufferString(slot, std::string(audioBuffer, audioBufferSize), "", volume);
+  api::PlayToPlayer(slot, std::string(audioBuffer, audioBufferSize), "", volume);
 }
-void CAudioInterface::SetPlayerAudioFile(int slot, const char *audioFile, int audioFileSize, float volume)
+void CAudioInterface::PlayToPlayerFromFile(int slot, const char *audioFile, int audioFileSize, float volume)
 {
   if (audioFileSize == 0 || audioFile == nullptr)
   {
-    api::SetPlayerAudioBufferString(slot, "", "", volume);
+    api::PlayToPlayer(slot, "", "", volume);
     return;
   }
-  api::SetPlayerAudioBufferString(slot, "", std::string(audioFile, audioFileSize), volume);
+  api::PlayToPlayer(slot, "", std::string(audioFile, audioFileSize), volume);
 }
 
-void CAudioInterface::SetAllAudioBuffer(const char *audioBuffer, int audioBufferSize, float volume)
+void CAudioInterface::PlayFromBuffer(const char *audioBuffer, int audioBufferSize, float volume)
 {
   if (audioBufferSize == 0 || audioBuffer == nullptr)
   {
-    api::SetAllAudioBufferString("", "", volume);
+    api::Play("", "", volume);
     return;
   }
-  api::SetAllAudioBufferString(std::string(audioBuffer, audioBufferSize), "", volume);
+  api::Play(std::string(audioBuffer, audioBufferSize), "", volume);
 }
-void CAudioInterface::SetAllAudioFile(const char *audioFile, int audioFileSize, float volume)
+void CAudioInterface::PlayFromFile(const char *audioFile, int audioFileSize, float volume)
 {
   if (audioFileSize == 0 || audioFile == nullptr)
   {
-    api::SetAllAudioBufferString("", "", volume);
+    api::Play("", "", volume);
     return;
   }
-  api::SetAllAudioBufferString("", std::string(audioFile, audioFileSize), volume);
+  api::Play("", std::string(audioFile, audioFileSize), volume);
 }
 bool CAudioInterface::IsPlaying(int slot)
 {
@@ -274,20 +274,20 @@ extern "C"
     return api::IsHearing(slot);
   }
 
-  void __cdecl NativeSetPlayerAudioBufferString(int slot, const char *audioBuffer, int audioBufferSize, const char *audioPath, int audioPathSize, float volume)
+  void __cdecl NativePlayToPlayer(int slot, const char *audioBuffer, int audioBufferSize, const char *audioPath, int audioPathSize, float volume)
   {
     auto data1 = std::string(audioBuffer, audioBufferSize);
     auto data2 = std::string(audioPath, audioPathSize);
 
-    api::SetPlayerAudioBufferString(slot, data1, data2, volume);
+    api::PlayToPlayer(slot, data1, data2, volume);
   }
 
-  void __cdecl NativeSetAllAudioBufferString(const char *audioBuffer, int audioBufferSize, const char *audioPath, int audioPathSize, float volume)
+  void __cdecl NativePlay(const char *audioBuffer, int audioBufferSize, const char *audioPath, int audioPathSize, float volume)
   {
     auto data1 = std::string(audioBuffer, audioBufferSize);
     auto data2 = std::string(audioPath, audioPathSize);
 
-    api::SetAllAudioBufferString(data1, data2, volume);
+    api::Play(data1, data2, volume);
   }
 
   bool __cdecl NativeIsPlaying(int slot)

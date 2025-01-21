@@ -26,8 +26,8 @@ namespace api
    * @param voiceData - buffer string, contains pcm data, pass null means stop playing
    * either buffer or path
    */
-  void SetPlayerAudioBufferString(int slot, std::string audioBuffer, std::string audioPath, float volume);
-  void SetAllAudioBufferString(std::string audioBuffer, std::string audioPath, float volume);
+  void PlayToPlayer(int slot, std::string audioBuffer, std::string audioPath, float volume);
+  void Play(std::string audioBuffer, std::string audioPath, float volume);
   bool IsPlaying(int slot);
   bool IsAllPlaying();
 
@@ -46,10 +46,10 @@ public:
   virtual void SetAllPlayerHearing(bool hearing) override;
   virtual bool IsHearing(int slot) override;
 
-  virtual void SetPlayerAudioBuffer(int slot, const char *audioBuffer, int audioBufferSize, float volume = 1.0) override;
-  virtual void SetPlayerAudioFile(int slot, const char *audioFile, int audioFileSize, float volume = 1.0) override;
-  virtual void SetAllAudioBuffer(const char *audioBuffer, int audioBufferSize, float volume = 1.0) override;
-  virtual void SetAllAudioFile(const char *audioFile, int audioFileSize, float volume = 1.0) override;
+  virtual void PlayToPlayerFromBuffer(int slot, const char *audioBuffer, int audioBufferSize, float volume = 1.0) override;
+  virtual void PlayToPlayerFromFile(int slot, const char *audioFile, int audioFileSize, float volume = 1.0) override;
+  virtual void PlayFromBuffer(const char *audioBuffer, int audioBufferSize, float volume = 1.0) override;
+  virtual void PlayFromFile(const char *audioFile, int audioFileSize, float volume = 1.0) override;
   virtual bool IsPlaying(int slot) override;
   virtual bool IsAllPlaying() override;
 
@@ -71,8 +71,8 @@ extern "C"
   PINVOKE_EXPORT void NativeSetAllPlayerHearing(bool hearing);
   PINVOKE_EXPORT bool NativeIsHearing(int slot);
 
-  PINVOKE_EXPORT void NativeSetPlayerAudioBufferString(int slot, const char *audioBuffer, int audioBufferSize, const char *audioPath, int audioPathSize, float volume = 1.0);
-  PINVOKE_EXPORT void NativeSetAllAudioBufferString(const char *audioBuffer, int audioBufferSize, const char *audioPath, int audioPathSize, float volume = 1.0);
+  PINVOKE_EXPORT void NativePlayToPlayer(int slot, const char *audioBuffer, int audioBufferSize, const char *audioPath, int audioPathSize, float volume = 1.0);
+  PINVOKE_EXPORT void NativePlay(const char *audioBuffer, int audioBufferSize, const char *audioPath, int audioPathSize, float volume = 1.0);
   PINVOKE_EXPORT bool NativeIsPlaying(int slot);
   PINVOKE_EXPORT bool NativeIsAllPlaying();
 

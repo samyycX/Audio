@@ -1,54 +1,54 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-public unsafe static class AudioPlayer
+public unsafe static class Audio
 {
   public delegate void PlayStartHandler(int slot);
   public delegate void PlayEndHandler(int slot);
 
   private static class NativeMethods
   {
-    [DllImport("audioplayer", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("audio", CallingConvention = CallingConvention.Cdecl)]
     public static extern void NativeSetPlayerHearing(int slot, bool hearing);
 
-    [DllImport("audioplayer", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("audio", CallingConvention = CallingConvention.Cdecl)]
     public static extern void NativeSetAllPlayerHearing(bool hearing);
 
-    [DllImport("audioplayer", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("audio", CallingConvention = CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.I1)]
     public static extern bool NativeIsHearing(int slot);
 
-    [DllImport("audioplayer", CallingConvention = CallingConvention.Cdecl)]
-    public static extern void NativeSetPlayerAudioBufferString(int slot, [MarshalAs(UnmanagedType.LPArray)] byte[] audioBuffer, int audioBufferSize, string audioPath, int audioPathSize, float volume = 1f);
+    [DllImport("audio", CallingConvention = CallingConvention.Cdecl)]
+    public static extern void NativePlayToPlayer(int slot, [MarshalAs(UnmanagedType.LPArray)] byte[] audioBuffer, int audioBufferSize, string audioPath, int audioPathSize, float volume = 1f);
 
-    [DllImport("audioplayer", CallingConvention = CallingConvention.Cdecl)]
-    public static extern void NativeSetAllAudioBufferString([MarshalAs(UnmanagedType.LPArray)] byte[] audioBuffer, int audioBufferSize, string audioPath, int audioPathSize, float volume = 1f);
+    [DllImport("audio", CallingConvention = CallingConvention.Cdecl)]
+    public static extern void NativePlay([MarshalAs(UnmanagedType.LPArray)] byte[] audioBuffer, int audioBufferSize, string audioPath, int audioPathSize, float volume = 1f);
 
-    [DllImport("audioplayer", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("audio", CallingConvention = CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.I1)]
     public static extern bool NativeIsPlaying(int slot);
 
-    [DllImport("audioplayer", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("audio", CallingConvention = CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.I1)]
     public static extern bool NativeIsAllPlaying();
 
-    [DllImport("audioplayer", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("audio", CallingConvention = CallingConvention.Cdecl)]
     public static extern int NativeRegisterPlayStartListener([MarshalAs(UnmanagedType.FunctionPtr)] PlayStartHandler callback);
 
-    [DllImport("audioplayer", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("audio", CallingConvention = CallingConvention.Cdecl)]
     public static extern void NativeUnregisterPlayStartListener(int id);
 
-    [DllImport("audioplayer", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("audio", CallingConvention = CallingConvention.Cdecl)]
     public static extern int NativeRegisterPlayEndListener([MarshalAs(UnmanagedType.FunctionPtr)] PlayEndHandler callback);
 
-    [DllImport("audioplayer", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("audio", CallingConvention = CallingConvention.Cdecl)]
     public static extern void NativeUnregisterPlayEndListener(int id);
 
     private static IntPtr DllImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
     {
-      if (libraryName == "audioplayer")
+      if (libraryName == "audio")
       {
-        return NativeLibrary.Load(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "audioplayer.dll" : "audioplayer.so", assembly, searchPath);
+        return NativeLibrary.Load(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "audio.dll" : "audio.so", assembly, searchPath);
       }
 
       return IntPtr.Zero;
@@ -99,9 +99,9 @@ public unsafe static class AudioPlayer
   * @param audioBuffer - buffer string, contains audio data (like mp3, wav), will be decoded to pcm by ffmpeg,
     pass empty string means stop playing
   */
-  public static void SetPlayerAudioBuffer(int slot, byte[] audioBuffer, float volume = 1f)
+  public static void PlayToPlayerFromBuffer(int slot, byte[] audioBuffer, float volume = 1f)
   {
-    NativeMethods.NativeSetPlayerAudioBufferString(slot, audioBuffer, audioBuffer.Length, "", 0, volume);
+    NativeMethods.NativePlayToPlayer(slot, audioBuffer, audioBuffer.Length, "", 0, volume);
   }
 
   /*
@@ -109,27 +109,27 @@ public unsafe static class AudioPlayer
   * @param audioFile - audio file path, must be absolute path to a audio file (like mp3, wav),
     will be decoded to pcm by ffmpeg, pass empty string means stop playing
   */
-  public static void SetPlayerAudioFile(int slot, string audioFile, float volume = 1f)
+  public static void PlayToPlayerFromFile(int slot, string audioFile, float volume = 1f)
   {
-    NativeMethods.NativeSetPlayerAudioBufferString(slot, [], 0, audioFile, audioFile.Length, volume);
+    NativeMethods.NativePlayToPlayer(slot, [], 0, audioFile, audioFile.Length, volume);
   }
 
   /*
   * @param audioBuffer - buffer string, contains audio data (like mp3, wav), will be decoded to pcm by ffmpeg,
     pass empty string means stop playing
   */
-  public static void SetAllAudioBuffer(byte[] audioBuffer, float volume = 1f)
+  public static void PlayFromBuffer(byte[] audioBuffer, float volume = 1f)
   {
-    NativeMethods.NativeSetAllAudioBufferString(audioBuffer, audioBuffer.Length, "", 0, volume);
+    NativeMethods.NativePlay(audioBuffer, audioBuffer.Length, "", 0, volume);
   }
 
   /*
   * @param audioFile - audio file path, must be absolute path to a audio file (like mp3, wav),
     will be decoded to pcm by ffmpeg, pass empty string means stop playing
   */
-  public static void SetAllAudioFile(string audioFile, float volume = 1f)
+  public static void PlayFromFile(string audioFile, float volume = 1f)
   {
-    NativeMethods.NativeSetAllAudioBufferString([], 0, audioFile, audioFile.Length, volume);
+    NativeMethods.NativePlay([], 0, audioFile, audioFile.Length, volume);
   }
 
   /*

@@ -20,28 +20,28 @@ A demo and a metamod lib to provide similar functions to the previous SM-Ext-Aud
 ## LINUX USER MUST READ
 If you are using linux and want to use it in counterstrikesharp, after you installed the plugin you need to execute this (replace `{YOUR VERSION}` with your actual dir name)
 ```
-ln -s /path/to/game/csgo/addons/audioplayer/bin/audioplayer.so /path/to/game/csgo/addons/counterstrikesharp/dotnet/shared/Microsoft.NETCore.App/{YOUR VERSION}/audioplayer.so
+ln -s /path/to/game/csgo/addons/audio/bin/audio.so /path/to/game/csgo/addons/counterstrikesharp/dotnet/shared/Microsoft.NETCore.App/{YOUR VERSION}/audio.so
 ```
 in your server root directory.
 
 ## Metamod API Usage
-1. Include the `iaudioplayer.h` in `public` folder.
+1. Include the `iaudio.h` in `public` folder.
 2. Query the interface in `AllPluginsLoaded` and use it like this:
 ```c++
 // in AllPluginsLoaded
-IAudioPlayer *pAudioPlayer = (IAudioPlayer*)g_SMAPI->MetaFactory(AUDIOPLAYER_INTERFACE, nullptr, nullptr);
+IAudio *pAudio = (IAudio*)g_SMAPI->MetaFactory(AUDIO_INTERFACE, nullptr, nullptr);
 
 // wherever you like
 std::string str = "D:/xxx.mp3";
 pInterface->SetAllAudioFile(str.c_str(), str.size());
 ```
-Further API methods are in the `iaudioplayer.h` interface doc.
+Further API methods are in the `iaudio.h` interface doc.
 
 ## Counterstrikesharp API Usage
-1. Copy the `AudioPlayer.cs` in `public` folder to your project.
+1. Copy the `Audio.cs` in `public` folder to your project.
 2. Use it.
 
-Further API methods are in the `iaudioplayer.h` interface doc.
+Further API methods are in the `iaudio.h` interface doc.
 
 ## Crash / Not working
 I don't have the ability to fully test this plugin, if you have any problem, please submit an issue and describe your problem as precise as you can.

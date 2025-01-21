@@ -22,12 +22,9 @@ public:
   Audio()
   {
     m_pAudio = (IAudio *)g_SMAPI->MetaFactory(AUDIO_INTERFACE, nullptr, nullptr);
-    g_SMAPI->ConPrintf("%p\n", m_pAudio);
     if (!g_Initialized)
     {
-      g_SMAPI->ConPrintf("123");
       m_pAudio->RegisterPlayStartListener(&Audio::OnPlayStart);
-      g_SMAPI->ConPrintf("123");
       m_pAudio->RegisterPlayEndListener(&Audio::OnPlayEnd);
       g_Initialized = true;
     }
@@ -40,10 +37,10 @@ public:
   void SetPlayerHearing(int slot, bool hearing);
   void SetAllPlayerHearing(bool hearing);
   bool IsHearing(int slot);
-  void SetPlayerAudioBuffer(int slot, std::string audioBuffer, float volume);
-  void SetPlayerAudioFile(int slot, std::string audioFile, float volume);
-  void SetAllAudioBuffer(std::string audioBuffer, float volume);
-  void SetAllAudioFile(std::string audioFile, float volume);
+  void PlayToPlayerFromBuffer(int slot, std::string audioBuffer, float volume);
+  void PlayToPlayerFromFile(int slot, std::string audioFile, float volume);
+  void PlayFromBuffer(std::string audioBuffer, float volume);
+  void PlayFromFile(std::string audioFile, float volume);
   bool IsPlaying(int slot);
   bool IsAllPlaying();
   void RegisterPlayStartListener(luabridge::LuaRef handler);

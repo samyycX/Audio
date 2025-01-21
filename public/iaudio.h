@@ -33,26 +33,26 @@ public:
      pass null and 0 size means stop playing
      @param audioBufferSize - the size of audioBuffer
    */
-  virtual void SetPlayerAudioBuffer(int slot, const char *audioBuffer, int audioBufferSize, float volume = 1.0) = 0;
+  virtual void PlayToPlayerFromBuffer(int slot, const char *audioBuffer, int audioBufferSize, float volume = 1.0) = 0;
   /*
    * @param slot - player slot to set
    * @param audioFile - audio file path, must be absolute path to a audio file (like mp3, wav),
      will be decoded to pcm by ffmpeg
      @param audioFileSize - the size of audioFile
    */
-  virtual void SetPlayerAudioFile(int slot, const char *audioFile, int audioFileSize, float volume = 1.0) = 0;
+  virtual void PlayToPlayerFromFile(int slot, const char *audioFile, int audioFileSize, float volume = 1.0) = 0;
   /*
    * @param audioBuffer - buffer string, contains audio data (like mp3, wav), will be decoded to pcm by ffmpeg,
      pass null and 0 size means stop playing
      @param audioBufferSize - the size of audioBuffer
    */
-  virtual void SetAllAudioBuffer(const char *audioBuffer, int audioBufferSize, float volume = 1.0) = 0;
+  virtual void PlayFromBuffer(const char *audioBuffer, int audioBufferSize, float volume = 1.0) = 0;
   /*
    * @param audioFile - audio file path, must be absolute path to a audio file (like mp3, wav),
      will be decoded to pcm by ffmpeg
      @param audioFileSize - the size of audioFile
    */
-  virtual void SetAllAudioFile(const char *audioFile, int audioFileSize, float volume = 1.0) = 0;
+  virtual void PlayFromFile(const char *audioFile, int audioFileSize, float volume = 1.0) = 0;
   /*
    * @param slot - player slot to get
    * @return whether there are audio playing for a specific player

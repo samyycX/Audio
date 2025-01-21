@@ -19,25 +19,25 @@ bool Audio::IsHearing(int slot)
   return m_pAudio->IsHearing(slot);
 }
 
-void Audio::SetPlayerAudioBuffer(int slot, std::string audioBuffer, float volume)
+void Audio::PlayToPlayerFromBuffer(int slot, std::string audioBuffer, float volume)
 {
-  m_pAudio->SetPlayerAudioBuffer(slot, audioBuffer.c_str(), audioBuffer.size(), volume);
+  m_pAudio->PlayToPlayerFromBuffer(slot, audioBuffer.c_str(), audioBuffer.size(), volume);
 }
 
-void Audio::SetPlayerAudioFile(int slot, std::string audioFile, float volume)
+void Audio::PlayToPlayerFromFile(int slot, std::string audioFile, float volume)
 {
-  m_pAudio->SetPlayerAudioFile(slot, audioFile.c_str(), audioFile.size(), volume);
+  m_pAudio->PlayToPlayerFromFile(slot, audioFile.c_str(), audioFile.size(), volume);
 }
 
-void Audio::SetAllAudioBuffer(std::string audioBuffer, float volume)
+void Audio::PlayFromBuffer(std::string audioBuffer, float volume)
 {
   g_SMAPI->ConPrintf("%d\n", audioBuffer.size());
-  m_pAudio->SetAllAudioBuffer(audioBuffer.c_str(), audioBuffer.size(), volume);
+  m_pAudio->PlayFromBuffer(audioBuffer.c_str(), audioBuffer.size(), volume);
 }
 
-void Audio::SetAllAudioFile(std::string audioFile, float volume)
+void Audio::PlayFromFile(std::string audioFile, float volume)
 {
-  m_pAudio->SetAllAudioFile(audioFile.c_str(), audioFile.size(), volume);
+  m_pAudio->PlayFromFile(audioFile.c_str(), audioFile.size(), volume);
 }
 
 bool Audio::IsPlaying(int slot)

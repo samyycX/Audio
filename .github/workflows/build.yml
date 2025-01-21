@@ -18,12 +18,12 @@ jobs:
     - name: Build plugin
       run: xmake build -y linux
     - name: Pack plugin
-      run: xmake pack audioplayer_linux
+      run: xmake pack audio_linux
     - name: Upload plugin as artifact
       uses: actions/upload-artifact@v4
       with:
-        name: audioplayer_linux
-        path: build/xpack/audioplayer_linux/audioplayer_linux.zip
+        name: audio_linux
+        path: build/xpack/audio_linux/audio_linux.zip
   build_windows:
     runs-on: windows-latest
     steps:
@@ -38,9 +38,9 @@ jobs:
     - name: Build plugin
       run: xmake build -y windows
     - name: Pack plugin
-      run: xmake pack audioplayer_windows
+      run: xmake pack audio_windows
     - name: Upload plugin as artifact
       uses: actions/upload-artifact@v4
       with:
-        name: audioplayer_windows
-        path: build/xpack/audioplayer_windows/audioplayer_windows.zip
+        name: audio_windows
+        path: build/xpack/audio_windows/audio_windows.zip
