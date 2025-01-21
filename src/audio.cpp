@@ -6,7 +6,7 @@
 #include <sstream>
 #include <vector>
 #include <funchook.h>
-#include "audioplayer.h"
+#include "audio.h"
 #include "utils/module.h"
 #include <iserver.h>
 #include <ISmmAPI.h>
@@ -31,7 +31,7 @@
 // typedef char(FASTCALL *SV_BroadcastVoiceData_t)(int64 idk, CServerSideClient *client, CMsgVoiceAudio *data, int64 xuid);
 // typedef CMsgVoiceAudio *(FASTCALL *CMSgVoiceAudio_Constructor_t)(int64 a);
 
-AudioPlayer g_AudioPlayer;
+Audio g_Audio;
 INetworkGameServer *g_pNetworkGameServer = nullptr;
 IVEngineServer2 *g_pEngineServer2 = nullptr;
 IGameEventSystem *g_gameEventSystem = nullptr;
@@ -47,11 +47,11 @@ OpusEncoder *encoder = opus_encoder_create(48000, 1, OPUS_APPLICATION_AUDIO, NUL
 
 bool g_bPlaying = false;
 
-CAudioPlayerInterface g_AudioPlayerInterface;
+CAudioInterface g_AudioInterface;
 
 std::thread VoiceDataSendingThread;
 
-PLUGIN_EXPOSE(AudioPlayer, g_AudioPlayer);
+PLUGIN_EXPOSE(Audio, g_Audio);
 
 class GameSessionConfiguration_t
 {
@@ -67,7 +67,7 @@ void Message(const char *msg, ...)
     char buf[1024] = {};
     V_vsnprintf(buf, sizeof(buf) - 1, msg, args);
 
-    ConColorMsg(Color(0, 255, 200), "[AUDIOPLAYER] %s", buf);
+    ConColorMsg(Color(0, 255, 200), "[Audio] %s", buf);
 
     va_end(args);
 }
@@ -80,7 +80,7 @@ void Panic(const char *msg, ...)
     char buf[1024] = {};
     V_vsnprintf(buf, sizeof(buf) - 1, msg, args);
 
-    Warning("[AUDIOPLAYER] %s", buf);
+    Warning("[Audio] %s", buf);
 
     va_end(args);
 }
@@ -186,7 +186,7 @@ void SendVoiceDataLoop()
     }
 }
 
-bool AudioPlayer::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
+bool Audio::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
     PLUGIN_SAVEVARS();
 
@@ -202,9 +202,9 @@ bool AudioPlayer::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, b
 
     engine = new CModule(ROOTBIN, "engine2");
     server = new CModule(GAMEBIN, "server");
-    SH_ADD_HOOK(INetworkServerService, StartupServer, g_pNetworkServerService, SH_MEMBER(this, &AudioPlayer::Hook_StartupServer), true);
+    SH_ADD_HOOK(INetworkServerService, StartupServer, g_pNetworkServerService, SH_MEMBER(this, &Audio::Hook_StartupServer), true);
     auto pCGameEventManagerVTable = (IGameEventManager2 *)server->FindVirtualTable("CGameEventManager");
-    g_iLoadEventsFromFileId = SH_ADD_DVPHOOK(IGameEventManager2, LoadEventsFromFile, pCGameEventManagerVTable, SH_MEMBER(this, &AudioPlayer::Hook_LoadEventsFromFile), false);
+    g_iLoadEventsFromFileId = SH_ADD_DVPHOOK(IGameEventManager2, LoadEventsFromFile, pCGameEventManagerVTable, SH_MEMBER(this, &Audio::Hook_LoadEventsFromFile), false);
     if (late)
     {
         RegisterEventListeners();
@@ -222,7 +222,7 @@ bool AudioPlayer::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, b
     //     g_pfnCMsgVoiceAudioConstructor = (CMSgVoiceAudio_Constructor_t)engine->FindSignature(CMsgVoiceAudio_Constructor_Sig, sizeof(CMsgVoiceAudio_Constructor_Sig) - 1, sig_error);
 
     char tempDir[512];
-    ismm->Format(tempDir, sizeof(tempDir), "%s/addons/audioplayer/temp", ismm->GetBaseDir());
+    ismm->Format(tempDir, sizeof(tempDir), "%s/addons/Audio/temp", ismm->GetBaseDir());
     std::filesystem::create_directory(tempDir);
     g_TempDir = std::string(tempDir);
     for (char &ch : g_TempDir)
@@ -236,9 +236,9 @@ bool AudioPlayer::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, b
     return true;
 }
 
-bool AudioPlayer::Unload(char *error, size_t maxlen)
+bool Audio::Unload(char *error, size_t maxlen)
 {
-    SH_REMOVE_HOOK(INetworkServerService, StartupServer, g_pNetworkServerService, SH_MEMBER(this, &AudioPlayer::Hook_StartupServer), true);
+    SH_REMOVE_HOOK(INetworkServerService, StartupServer, g_pNetworkServerService, SH_MEMBER(this, &Audio::Hook_StartupServer), true);
     SH_REMOVE_HOOK_ID(g_iLoadEventsFromFileId);
 
     UnregisterEventListeners();
@@ -255,9 +255,9 @@ bool AudioPlayer::Unload(char *error, size_t maxlen)
     return true;
 }
 
-void *AudioPlayer::OnMetamodQuery(const char *iface, int *ret)
+void *Audio::OnMetamodQuery(const char *iface, int *ret)
 {
-    if (V_strcmp(iface, AUDIOPLAYER_INTERFACE))
+    if (V_strcmp(iface, AUDIO_INTERFACE))
     {
         if (ret)
             *ret = META_IFACE_FAILED;
@@ -268,10 +268,10 @@ void *AudioPlayer::OnMetamodQuery(const char *iface, int *ret)
     if (ret)
         *ret = META_IFACE_OK;
 
-    return &g_AudioPlayerInterface;
+    return &g_AudioInterface;
 }
 
-void AudioPlayer::Hook_StartupServer(const GameSessionConfiguration_t &config, ISource2WorldSession *session, const char *mapname)
+void Audio::Hook_StartupServer(const GameSessionConfiguration_t &config, ISource2WorldSession *session, const char *mapname)
 {
     g_pNetworkGameServer = g_pNetworkServerService->GetIGameServer();
     RegisterEventListeners();
@@ -284,49 +284,49 @@ void AudioPlayer::Hook_StartupServer(const GameSessionConfiguration_t &config, I
     // g_bPlaying = 1;
 }
 
-int AudioPlayer::Hook_LoadEventsFromFile(const char *filename, bool bSearchAll)
+int Audio::Hook_LoadEventsFromFile(const char *filename, bool bSearchAll)
 {
     ExecuteOnce(g_gameEventManager = META_IFACEPTR(IGameEventManager2));
 
     RETURN_META_VALUE(MRES_IGNORED, 0);
 }
 
-const char *AudioPlayer::GetLicense()
+const char *Audio::GetLicense()
 {
     return "GPL v3 License";
 }
 
-const char *AudioPlayer::GetVersion()
+const char *Audio::GetVersion()
 {
     return "1.2.2";
 }
 
-const char *AudioPlayer::GetDate()
+const char *Audio::GetDate()
 {
     return __DATE__;
 }
 
-const char *AudioPlayer::GetLogTag()
+const char *Audio::GetLogTag()
 {
-    return "AudioPlayer";
+    return "Audio";
 }
 
-const char *AudioPlayer::GetAuthor()
+const char *Audio::GetAuthor()
 {
     return "samyyc";
 }
 
-const char *AudioPlayer::GetDescription()
+const char *Audio::GetDescription()
 {
     return "A voice player to play custom audio.";
 }
 
-const char *AudioPlayer::GetName()
+const char *Audio::GetName()
 {
-    return "AudioPlayer";
+    return "Audio";
 }
 
-const char *AudioPlayer::GetURL()
+const char *Audio::GetURL()
 {
-    return "https://github.com/samyycX/AudioPlayer";
+    return "https://github.com/samyycX/Audio";
 }

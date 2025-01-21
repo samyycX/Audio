@@ -3,9 +3,9 @@
 #include <vector>
 #include <iostream>
 
-#define AUDIOPLAYER_INTERFACE "AudioPlayer002"
+#define AUDIO_INTERFACE "Audio002"
 
-class IAudioPlayer
+class IAudio
 {
 
   typedef void (*PLAY_START_HANDLER)(int);

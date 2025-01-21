@@ -6,48 +6,48 @@ std::vector<luabridge::LuaRef> g_PlayEndListeners;
 
 void Audio::SetPlayerHearing(int slot, bool hearing)
 {
-  m_pAudioPlayer->SetPlayerHearing(slot, hearing);
+  m_pAudio->SetPlayerHearing(slot, hearing);
 }
 
 void Audio::SetAllPlayerHearing(bool hearing)
 {
-  m_pAudioPlayer->SetAllPlayerHearing(hearing);
+  m_pAudio->SetAllPlayerHearing(hearing);
 }
 
 bool Audio::IsHearing(int slot)
 {
-  return m_pAudioPlayer->IsHearing(slot);
+  return m_pAudio->IsHearing(slot);
 }
 
-void Audio::SetPlayerAudioBuffer(int slot, std::string audioBuffer)
+void Audio::SetPlayerAudioBuffer(int slot, std::string audioBuffer, float volume)
 {
-  m_pAudioPlayer->SetPlayerAudioBuffer(slot, audioBuffer.c_str(), audioBuffer.size());
+  m_pAudio->SetPlayerAudioBuffer(slot, audioBuffer.c_str(), audioBuffer.size(), volume);
 }
 
-void Audio::SetPlayerAudioFile(int slot, std::string audioFile)
+void Audio::SetPlayerAudioFile(int slot, std::string audioFile, float volume)
 {
-  m_pAudioPlayer->SetPlayerAudioFile(slot, audioFile.c_str(), audioFile.size());
+  m_pAudio->SetPlayerAudioFile(slot, audioFile.c_str(), audioFile.size(), volume);
 }
 
-void Audio::SetAllAudioBuffer(std::string audioBuffer)
+void Audio::SetAllAudioBuffer(std::string audioBuffer, float volume)
 {
   g_SMAPI->ConPrintf("%d\n", audioBuffer.size());
-  m_pAudioPlayer->SetAllAudioBuffer(audioBuffer.c_str(), audioBuffer.size());
+  m_pAudio->SetAllAudioBuffer(audioBuffer.c_str(), audioBuffer.size(), volume);
 }
 
-void Audio::SetAllAudioFile(std::string audioFile)
+void Audio::SetAllAudioFile(std::string audioFile, float volume)
 {
-  m_pAudioPlayer->SetAllAudioFile(audioFile.c_str(), audioFile.size());
+  m_pAudio->SetAllAudioFile(audioFile.c_str(), audioFile.size(), volume);
 }
 
 bool Audio::IsPlaying(int slot)
 {
-  return m_pAudioPlayer->IsPlaying(slot);
+  return m_pAudio->IsPlaying(slot);
 }
 
 bool Audio::IsAllPlaying()
 {
-  return m_pAudioPlayer->IsAllPlaying();
+  return m_pAudio->IsAllPlaying();
 }
 
 void Audio::RegisterPlayStartListener(luabridge::LuaRef handler)

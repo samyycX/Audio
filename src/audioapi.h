@@ -1,5 +1,5 @@
 #include <string>
-#include "../public/iaudioplayer.h"
+#include "../public/iaudio.h"
 #include <globals.h>
 
 // not using
@@ -38,7 +38,7 @@ namespace api
 
 }
 
-class CAudioPlayerInterface : IAudioPlayer
+class CAudioInterface : IAudio
 {
 
 public:

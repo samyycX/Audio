@@ -155,32 +155,32 @@ namespace api
 
 }
 
-// void CAudioPlayerInterface::SetPlayerVolume(int slot, float factor)
+// void CAudioInterface::SetPlayerVolume(int slot, float factor)
 // {
 //   SetPlayerVolume(slot, factor);
 // }
 
-// void CAudioPlayerInterface::SetAllPlayerVolume(float factor)
+// void CAudioInterface::SetAllPlayerVolume(float factor)
 // {
 //   SetAllPlayerVolume(factor);
 // }
-// float CAudioPlayerInterface::GetPlayerVolume(int slot)
+// float CAudioInterface::GetPlayerVolume(int slot)
 // {
 //   return GetPlayerVolume(slot);
 // }
-void CAudioPlayerInterface::SetPlayerHearing(int slot, bool hearing)
+void CAudioInterface::SetPlayerHearing(int slot, bool hearing)
 {
   api::SetPlayerHearing(slot, hearing);
 }
-void CAudioPlayerInterface::SetAllPlayerHearing(bool hearing)
+void CAudioInterface::SetAllPlayerHearing(bool hearing)
 {
   api::SetAllPlayerHearing(hearing);
 }
-bool CAudioPlayerInterface::IsHearing(int slot)
+bool CAudioInterface::IsHearing(int slot)
 {
   return api::IsHearing(slot);
 }
-void CAudioPlayerInterface::SetPlayerAudioBuffer(int slot, const char *audioBuffer, int audioBufferSize, float volume)
+void CAudioInterface::SetPlayerAudioBuffer(int slot, const char *audioBuffer, int audioBufferSize, float volume)
 {
   if (audioBufferSize == 0 || audioBuffer == nullptr)
   {
@@ -189,7 +189,7 @@ void CAudioPlayerInterface::SetPlayerAudioBuffer(int slot, const char *audioBuff
   }
   api::SetPlayerAudioBufferString(slot, std::string(audioBuffer, audioBufferSize), "", volume);
 }
-void CAudioPlayerInterface::SetPlayerAudioFile(int slot, const char *audioFile, int audioFileSize, float volume)
+void CAudioInterface::SetPlayerAudioFile(int slot, const char *audioFile, int audioFileSize, float volume)
 {
   if (audioFileSize == 0 || audioFile == nullptr)
   {
@@ -199,7 +199,7 @@ void CAudioPlayerInterface::SetPlayerAudioFile(int slot, const char *audioFile, 
   api::SetPlayerAudioBufferString(slot, "", std::string(audioFile, audioFileSize), volume);
 }
 
-void CAudioPlayerInterface::SetAllAudioBuffer(const char *audioBuffer, int audioBufferSize, float volume)
+void CAudioInterface::SetAllAudioBuffer(const char *audioBuffer, int audioBufferSize, float volume)
 {
   if (audioBufferSize == 0 || audioBuffer == nullptr)
   {
@@ -208,7 +208,7 @@ void CAudioPlayerInterface::SetAllAudioBuffer(const char *audioBuffer, int audio
   }
   api::SetAllAudioBufferString(std::string(audioBuffer, audioBufferSize), "", volume);
 }
-void CAudioPlayerInterface::SetAllAudioFile(const char *audioFile, int audioFileSize, float volume)
+void CAudioInterface::SetAllAudioFile(const char *audioFile, int audioFileSize, float volume)
 {
   if (audioFileSize == 0 || audioFile == nullptr)
   {
@@ -217,27 +217,27 @@ void CAudioPlayerInterface::SetAllAudioFile(const char *audioFile, int audioFile
   }
   api::SetAllAudioBufferString("", std::string(audioFile, audioFileSize), volume);
 }
-bool CAudioPlayerInterface::IsPlaying(int slot)
+bool CAudioInterface::IsPlaying(int slot)
 {
   return api::IsPlaying(slot);
 }
-bool CAudioPlayerInterface::IsAllPlaying()
+bool CAudioInterface::IsAllPlaying()
 {
   return api::IsAllPlaying();
 }
-int CAudioPlayerInterface::RegisterPlayStartListener(PLAY_START_CALLBACK callback)
+int CAudioInterface::RegisterPlayStartListener(PLAY_START_CALLBACK callback)
 {
   return api::RegisterPlayStartListener(callback);
 }
-void CAudioPlayerInterface::UnregisterPlayStartListener(int id)
+void CAudioInterface::UnregisterPlayStartListener(int id)
 {
   api::UnregisterPlayStartListener(id);
 }
-int CAudioPlayerInterface::RegisterPlayEndListener(PLAY_END_CALLBACK callback)
+int CAudioInterface::RegisterPlayEndListener(PLAY_END_CALLBACK callback)
 {
   return api::RegisterPlayEndListener(callback);
 }
-void CAudioPlayerInterface::UnregisterPlayEndListener(int id)
+void CAudioInterface::UnregisterPlayEndListener(int id)
 {
   api::UnregisterPlayEndListener(id);
 }

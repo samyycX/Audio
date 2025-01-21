@@ -1,0 +1,5 @@
+"Metamod Plugin"
+{
+	"alias"	"audio"
+	"file"	"addons\audio\bin\audio"
+}
