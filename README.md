@@ -15,6 +15,7 @@ A demo and a metamod lib to provide similar functions to the previous SM-Ext-Aud
 
 ## Prerequisites
 1. ffmpeg installed and can be found in your PATH.
+2. If you use swiftly, download file that starts with `swext_` and put it into your swiftly extension folder.
 
 ## LINUX USER MUST READ
 If you are using linux and want to use it in counterstrikesharp, after you installed the plugin you need to execute this (replace `{YOUR VERSION}` with your actual dir name)
