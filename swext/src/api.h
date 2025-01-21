@@ -1,7 +1,7 @@
 #ifndef _audio_api_h
 #define _audio_api_h
 
-#include "iAudio.h"
+#include "iaudio.h"
 #include <entrypoint.h>
 
 #include <lua.h>
