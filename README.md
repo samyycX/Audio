@@ -5,8 +5,7 @@ A demo and a metamod lib to provide similar functions to the previous SM-Ext-Aud
 - [Demo](#demo)
 - [Prerequisites](#prerequisites)
 - [LINUX USER MUST READ](#linux-user-must-read)
-- [Metamod API Usage](#metamod-api-usage)
-- [Counterstrikesharp API Usage](#counterstrikesharp-api-usage)
+- [API Usage](#api-usage)
 - [Crash / Not working](#crash--not-working)
 - [Credits](#credits)
 
@@ -24,24 +23,8 @@ ln -s /path/to/game/csgo/addons/audio/bin/audio.so /path/to/game/csgo/addons/cou
 ```
 in your server root directory.
 
-## Metamod API Usage
-1. Include the `iaudio.h` in `public` folder.
-2. Query the interface in `AllPluginsLoaded` and use it like this:
-```c++
-// in AllPluginsLoaded
-IAudio *pAudio = (IAudio*)g_SMAPI->MetaFactory(AUDIO_INTERFACE, nullptr, nullptr);
-
-// wherever you like
-std::string str = "D:/xxx.mp3";
-pInterface->SetAllAudioFile(str.c_str(), str.size());
-```
-Further API methods are in the `iaudio.h` interface doc.
-
-## Counterstrikesharp API Usage
-1. Copy the `Audio.cs` in `public` folder to your project.
-2. Use it.
-
-Further API methods are in the `iaudio.h` interface doc.
+## API Usage
+See [Wiki](https://github.com/samyycX/Audio/wiki/API-Usage)
 
 ## Crash / Not working
 I don't have the ability to fully test this plugin, if you have any problem, please submit an issue and describe your problem as precise as you can.
