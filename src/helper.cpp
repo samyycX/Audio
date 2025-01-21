@@ -49,11 +49,11 @@ CServerSideClient *GetClientBySlot(CPlayerSlot slot)
   return pClients->Element(slot.Get());
 }
 
-std::vector<uint8_t> ConvertAudioBufferToPCM(std::string file_path)
+std::vector<uint8_t> ConvertAudioBufferToPCM(std::string file_path, float volume = 1.0)
 {
   std::vector<uint8_t> outputBuffer;
   std::ostringstream command;
-  command << "ffmpeg -y -i \"" << file_path << "\" -acodec pcm_s16le -ac 1 -ar 48000 -f s16le -";
+  command << "ffmpeg -y -i \"" << file_path << "\" -acodec pcm_s16le -ac 1 -ar 48000 -filter:a \"volume=" << volume << "\" -f s16le -";
 
 #if defined(_WIN32)
   FILE *pipe = _popen(command.str().c_str(), "rb");
@@ -128,7 +128,7 @@ std::vector<SVCVoiceDataMessage> FillVoiceMessage(std::vector<std::string> &buff
   return result;
 }
 
-void ProcessVoiceData(std::string audioBuffer, std::string audioPath, float volumeFactor, std::function<void(std::vector<SVCVoiceDataMessage>)> const &callback)
+void ProcessVoiceData(std::string audioBuffer, std::string audioPath, float volumeFactor, std::function<void(std::vector<SVCVoiceDataMessage>)> const &callback, float volumeLevel = 1.0)
 {
   std::vector<std::string> opus_buffers;
   std::vector<uint8_t> buffer;
@@ -146,7 +146,7 @@ void ProcessVoiceData(std::string audioBuffer, std::string audioPath, float volu
     outfile.close();
     try
     {
-      buffer = ConvertAudioBufferToPCM(path);
+      buffer = ConvertAudioBufferToPCM(path, volumeLevel);
     }
     catch (const std::exception &e)
     {
@@ -160,7 +160,7 @@ void ProcessVoiceData(std::string audioBuffer, std::string audioPath, float volu
   {
     try
     {
-      buffer = ConvertAudioBufferToPCM(audioPath);
+      buffer = ConvertAudioBufferToPCM(audioPath, volumeLevel);
     }
     catch (const std::exception &e)
     {
