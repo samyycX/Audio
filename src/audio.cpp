@@ -298,7 +298,7 @@ const char *Audio::GetLicense()
 
 const char *Audio::GetVersion()
 {
-    return "1.2.2";
+    return "2.0.0";
 }
 
 const char *Audio::GetDate()
