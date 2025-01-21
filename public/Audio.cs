@@ -44,6 +44,9 @@ public unsafe static class Audio
     [DllImport("audio", CallingConvention = CallingConvention.Cdecl)]
     public static extern void NativeUnregisterPlayEndListener(int id);
 
+    [DllImport("audio", CallingConvention = CallingConvention.Cdecl)]
+    public static extern void NativeSetPlayer(int slot);
+
     private static IntPtr DllImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
     {
       if (libraryName == "audio")
@@ -189,5 +192,13 @@ public unsafe static class Audio
   {
     NativeMethods.NativeUnregisterPlayEndListener(_PlayEndListeners[handler]);
     _PlayEndListeners.Remove(handler);
+  }
+
+  /*
+  * @param slot - player slot to set
+  */
+  public static void SetPlayer(int slot)
+  {
+    NativeMethods.NativeSetPlayer(slot);
   }
 }

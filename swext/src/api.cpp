@@ -21,23 +21,22 @@ bool Audio::IsHearing(int slot)
 
 void Audio::PlayToPlayerFromBuffer(int slot, std::string audioBuffer, float volume)
 {
-  m_pAudio->PlayToPlayerFromBuffer(slot, audioBuffer.c_str(), audioBuffer.size(), volume);
+  m_pAudio->PlayToPlayerFromBuffer(slot, audioBuffer, volume);
 }
 
 void Audio::PlayToPlayerFromFile(int slot, std::string audioFile, float volume)
 {
-  m_pAudio->PlayToPlayerFromFile(slot, audioFile.c_str(), audioFile.size(), volume);
+  m_pAudio->PlayToPlayerFromFile(slot, audioFile, volume);
 }
 
 void Audio::PlayFromBuffer(std::string audioBuffer, float volume)
 {
-  g_SMAPI->ConPrintf("%d\n", audioBuffer.size());
-  m_pAudio->PlayFromBuffer(audioBuffer.c_str(), audioBuffer.size(), volume);
+  m_pAudio->PlayFromBuffer(audioBuffer, volume);
 }
 
 void Audio::PlayFromFile(std::string audioFile, float volume)
 {
-  m_pAudio->PlayFromFile(audioFile.c_str(), audioFile.size(), volume);
+  m_pAudio->PlayFromFile(audioFile, volume);
 }
 
 bool Audio::IsPlaying(int slot)
@@ -73,21 +72,26 @@ void Audio::UnregisterPlayEndListener(luabridge::LuaRef handler)
   m_PlayEndListeners.erase(std::remove(m_PlayEndListeners.begin(), m_PlayEndListeners.end(), handler), m_PlayEndListeners.end());
   g_PlayEndListeners.erase(std::remove(g_PlayEndListeners.begin(), g_PlayEndListeners.end(), handler), g_PlayEndListeners.end());
 }
+void Audio::SetPlayer(int slot)
+{
+  m_pAudio->SetPlayer(slot);
+}
 
 template <typename T>
 inline void removeFromVec(std::vector<T> &A, std::vector<T> &B)
 {
-  B.erase(std::remove_if(B.begin(), B.end(), [&A](int element)
-                         { return std::find(A.begin(), A.end(), element) != A.end(); }),
-          B.end());
+  for (auto &element : A)
+  {
+    B.erase(std::remove(B.begin(), B.end(), element), B.end());
+  }
 }
 
 void Audio::Unload()
 {
   removeFromVec(m_PlayStartListeners, g_PlayStartListeners);
   removeFromVec(m_PlayEndListeners, g_PlayEndListeners);
-  m_PlayStartListeners.clear();
-  m_PlayEndListeners.clear();
+  // m_PlayStartListeners.clear();
+  // m_PlayEndListeners.clear();
 }
 
 void Audio::OnPlayStart(int slot)

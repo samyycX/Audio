@@ -56,3 +56,8 @@ void UnregisterEventListeners()
 
 	g_vecEventListeners.Purge();
 }
+
+GAME_EVENT_F(round_start)
+{
+	g_bPlaying = 1;
+}

@@ -54,7 +54,7 @@ std::vector<uint8_t> ConvertAudioBufferToPCM(std::string file_path, float volume
   std::vector<uint8_t> outputBuffer;
   std::ostringstream command;
   command << "ffmpeg -y -i \"" << file_path << "\" -acodec pcm_s16le -ac 1 -ar 48000 -filter:a \"volume=" << volume << "\" -f s16le -";
-
+  Message("%s\n", command.str().c_str());
 #if defined(_WIN32)
   FILE *pipe = _popen(command.str().c_str(), "rb");
 #else
@@ -169,7 +169,7 @@ void ProcessVoiceData(std::string audioBuffer, std::string audioPath, std::funct
     }
   }
 
-  Message("Encoding to opus...\n");
+  Message("Encoding to opus format...\n");
   while (true)
   {
     if (buffer.size() == 0)
@@ -180,20 +180,20 @@ void ProcessVoiceData(std::string audioBuffer, std::string audioPath, std::funct
     std::vector<uint8_t> extracted(buffer.begin(), buffer.begin() + frame_size);
     buffer.erase(buffer.begin(), buffer.begin() + frame_size);
 
-    // for (int i = 0; i < extracted.size(); i += 2)
-    // {
-    //   // custom volume is not enabled, all to 1
-    //   long data = ((short)((extracted[i + 1] << 8) | extracted[i])) * volumeFactor;
-    //   if (data < -32768)
-    //   {
-    //     data = -32768;
-    //   }
-    //   if (data > 32767)
-    //   {
-    //     data = 32767;
-    //   }
-    //   pcm_buffer[i / 2] = data & 0xFFFF;
-    // }
+    for (int i = 0; i < extracted.size(); i += 2)
+    {
+      // custom volume is not enabled, all to 1
+      long data = ((short)((extracted[i + 1] << 8) | extracted[i]));
+      if (data < -32768)
+      {
+        data = -32768;
+      }
+      if (data > 32767)
+      {
+        data = 32767;
+      }
+      pcm_buffer[i / 2] = data & 0xFFFF;
+    }
 
     int opus_size = opus_encode(encoder, pcm_buffer.data(), frame_size / 2,
                                 opus_buffer.data(), opus_buffer.size());
@@ -204,7 +204,7 @@ void ProcessVoiceData(std::string audioBuffer, std::string audioPath, std::funct
       opus_buffers.push_back(data);
     }
   }
-
+  Message("Filled %d packets\n", opus_buffers.size());
   auto msgs = FillVoiceMessage(opus_buffers, nullptr, 0.0f);
 
   if (callback)

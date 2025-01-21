@@ -46,4 +46,6 @@ extern PLAY_END_CALLBACK g_PlayEndListeners[MAX_LISTENERS];
 
 extern CServerSideClient *g_AudioPlayerClient;
 
+extern int g_Player;
+
 void InitializeGlobals();

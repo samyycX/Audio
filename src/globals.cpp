@@ -19,6 +19,8 @@ PLAY_END_CALLBACK g_PlayEndListeners[MAX_LISTENERS] = {nullptr};
 
 CServerSideClient *g_AudioPlayerClient;
 
+int g_Player = -1;
+
 void InitializeGlobals()
 {
   for (int i = 0; i < MAX_SLOT; i++)

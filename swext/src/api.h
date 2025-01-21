@@ -47,6 +47,7 @@ public:
   void UnregisterPlayStartListener(luabridge::LuaRef handler);
   void RegisterPlayEndListener(luabridge::LuaRef handler);
   void UnregisterPlayEndListener(luabridge::LuaRef handler);
+  void SetPlayer(int slot);
   void Unload();
 
 protected:

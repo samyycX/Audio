@@ -153,6 +153,11 @@ namespace api
     g_PlayEndListeners[id] = nullptr;
   }
 
+  void SetPlayer(int slot)
+  {
+    std::unique_lock<std::shared_mutex> lock(g_Mutex);
+    g_Player = slot;
+  }
 }
 
 // void CAudioInterface::SetPlayerVolume(int slot, float factor)
@@ -180,42 +185,22 @@ bool CAudioInterface::IsHearing(int slot)
 {
   return api::IsHearing(slot);
 }
-void CAudioInterface::PlayToPlayerFromBuffer(int slot, const char *audioBuffer, int audioBufferSize, float volume)
+void CAudioInterface::PlayToPlayerFromBuffer(int slot, std::string audioBuffer, float volume)
 {
-  if (audioBufferSize == 0 || audioBuffer == nullptr)
-  {
-    api::PlayToPlayer(slot, "", "", volume);
-    return;
-  }
-  api::PlayToPlayer(slot, std::string(audioBuffer, audioBufferSize), "", volume);
+  api::PlayToPlayer(slot, audioBuffer, "", volume);
 }
-void CAudioInterface::PlayToPlayerFromFile(int slot, const char *audioFile, int audioFileSize, float volume)
+void CAudioInterface::PlayToPlayerFromFile(int slot, std::string audioFile, float volume)
 {
-  if (audioFileSize == 0 || audioFile == nullptr)
-  {
-    api::PlayToPlayer(slot, "", "", volume);
-    return;
-  }
-  api::PlayToPlayer(slot, "", std::string(audioFile, audioFileSize), volume);
+  api::PlayToPlayer(slot, "", audioFile, volume);
 }
 
-void CAudioInterface::PlayFromBuffer(const char *audioBuffer, int audioBufferSize, float volume)
+void CAudioInterface::PlayFromBuffer(std::string audioBuffer, float volume)
 {
-  if (audioBufferSize == 0 || audioBuffer == nullptr)
-  {
-    api::Play("", "", volume);
-    return;
-  }
-  api::Play(std::string(audioBuffer, audioBufferSize), "", volume);
+  api::Play(audioBuffer, "", volume);
 }
-void CAudioInterface::PlayFromFile(const char *audioFile, int audioFileSize, float volume)
+void CAudioInterface::PlayFromFile(std::string audioFile, float volume)
 {
-  if (audioFileSize == 0 || audioFile == nullptr)
-  {
-    api::Play("", "", volume);
-    return;
-  }
-  api::Play("", std::string(audioFile, audioFileSize), volume);
+  api::Play("", audioFile, volume);
 }
 bool CAudioInterface::IsPlaying(int slot)
 {
@@ -241,21 +226,10 @@ void CAudioInterface::UnregisterPlayEndListener(int id)
 {
   api::UnregisterPlayEndListener(id);
 }
-
-// void NativeSetPlayerVolume(int slot, float factor)
-// {
-//   SetPlayerVolume(slot, factor);
-// }
-
-// void NativeSetAllPlayerVolume(float factor)
-// {
-//   SetAllPlayerVolume(factor);
-// }
-
-// float NativeGetPlayerVolume(int slot)
-// {
-//   return GetPlayerVolume(slot);
-// }
+void CAudioInterface::SetPlayer(int slot)
+{
+  api::SetPlayer(slot);
+}
 
 extern "C"
 {
@@ -318,5 +292,9 @@ extern "C"
   void __cdecl NativeUnregisterPlayEndListener(int id)
   {
     api::UnregisterPlayEndListener(id);
+  }
+  void __cdecl NativeSetPlayer(int slot)
+  {
+    api::SetPlayer(slot);
   }
 }

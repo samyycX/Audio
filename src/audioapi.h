@@ -36,6 +36,8 @@ namespace api
   int RegisterPlayEndListener(PLAY_END_CALLBACK callback);
   void UnregisterPlayEndListener(int id);
 
+  void SetPlayer(int slot);
+
 }
 
 class CAudioInterface : IAudio
@@ -46,10 +48,10 @@ public:
   virtual void SetAllPlayerHearing(bool hearing) override;
   virtual bool IsHearing(int slot) override;
 
-  virtual void PlayToPlayerFromBuffer(int slot, const char *audioBuffer, int audioBufferSize, float volume = 1.0) override;
-  virtual void PlayToPlayerFromFile(int slot, const char *audioFile, int audioFileSize, float volume = 1.0) override;
-  virtual void PlayFromBuffer(const char *audioBuffer, int audioBufferSize, float volume = 1.0) override;
-  virtual void PlayFromFile(const char *audioFile, int audioFileSize, float volume = 1.0) override;
+  virtual void PlayToPlayerFromBuffer(int slot, std::string audioBuffer, float volume = 1.0) override;
+  virtual void PlayToPlayerFromFile(int slot, std::string audioFile, float volume = 1.0) override;
+  virtual void PlayFromBuffer(std::string audioBuffer, float volume = 1.0) override;
+  virtual void PlayFromFile(std::string audioFile, float volume = 1.0) override;
   virtual bool IsPlaying(int slot) override;
   virtual bool IsAllPlaying() override;
 
@@ -57,6 +59,8 @@ public:
   virtual void UnregisterPlayStartListener(int id);
   virtual int RegisterPlayEndListener(PLAY_END_CALLBACK callback);
   virtual void UnregisterPlayEndListener(int id);
+
+  virtual void SetPlayer(int slot);
 };
 
 #ifdef PLATFORM_LINUX
@@ -80,4 +84,6 @@ extern "C"
   PINVOKE_EXPORT void NativeUnregisterPlayStartListener(int id);
   PINVOKE_EXPORT int NativeRegisterPlayEndListener(PLAY_END_CALLBACK callback);
   PINVOKE_EXPORT void NativeUnregisterPlayEndListener(int id);
+
+  PINVOKE_EXPORT void NativeSetPlayer(int slot);
 }
