@@ -5,3 +5,12 @@
 [submodule ".deps/metamod-source"]
 	path = .deps/metamod-source
 	url = https://github.com/alliedmodders/metamod-source
+[submodule "swext/vendor/swiftly-ext"]
+	path = swext/vendor/swiftly-ext
+	url = https://github.com/swiftly-solution/swiftly-ext
+[submodule "swext/vendor/lua"]
+	path = swext/vendor/lua
+	url = https://github.com/swiftly-solution/lua
+[submodule "swext/vendor/LuaBridge"]
+	path = swext/vendor/LuaBridge
+	url = https://github.com/swiftly-solution/LuaBridge
