@@ -1,4 +1,4 @@
-# AudioPlayer
+# Audio
 A demo and a metamod lib to provide similar functions to the previous SM-Ext-Audio extension in csgo, that is, sending custom audio streams such as a song through a bot's voice chat.
 
 ## Table of Contents
