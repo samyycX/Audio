@@ -222,7 +222,7 @@ bool Audio::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool la
     //     g_pfnCMsgVoiceAudioConstructor = (CMSgVoiceAudio_Constructor_t)engine->FindSignature(CMsgVoiceAudio_Constructor_Sig, sizeof(CMsgVoiceAudio_Constructor_Sig) - 1, sig_error);
 
     char tempDir[512];
-    ismm->Format(tempDir, sizeof(tempDir), "%s/addons/Audio/temp", ismm->GetBaseDir());
+    ismm->Format(tempDir, sizeof(tempDir), "%s/addons/audio/temp", ismm->GetBaseDir());
     std::filesystem::create_directory(tempDir);
     g_TempDir = std::string(tempDir);
     for (char &ch : g_TempDir)
@@ -298,7 +298,7 @@ const char *Audio::GetLicense()
 
 const char *Audio::GetVersion()
 {
-    return "2.0.0";
+    return "2.0.1";
 }
 
 const char *Audio::GetDate()
