@@ -54,6 +54,7 @@ namespace api
     {
       std::unique_lock<std::shared_mutex> lock(g_Mutex);
       g_PlayerAudioBuffer[slot].clear();
+      g_PlayerProgress[slot] = 0;
       for (auto &callback : g_PlayEndListeners)
       {
         if (callback != nullptr)
@@ -65,6 +66,7 @@ namespace api
     {
       std::unique_lock<std::shared_mutex> lock(g_Mutex);
       g_PlayerAudioBuffer[slot] = msgbuffer;
+      g_PlayerProgress[slot] = 0;
       for (auto &callback : g_PlayStartListeners)
       {
         if (callback != nullptr)
@@ -81,6 +83,7 @@ namespace api
     {
       std::unique_lock<std::shared_mutex> lock(g_Mutex);
       g_GlobalAudioBuffer.clear();
+      g_GlobalProgress = 0;
       for (auto &callback : g_PlayEndListeners)
       {
         if (callback != nullptr)
@@ -92,6 +95,7 @@ namespace api
     {
       std::unique_lock<std::shared_mutex> lock(g_Mutex);
       g_GlobalAudioBuffer = msgbuffer;
+      g_GlobalProgress = 0;
       for (auto &callback : g_PlayStartListeners)
       {
         if (callback != nullptr)
@@ -151,6 +155,25 @@ namespace api
   {
     std::unique_lock<std::shared_mutex> lock(g_Mutex);
     g_PlayEndListeners[id] = nullptr;
+  }
+
+  int RegisterPlayListener(PLAY_CALLBACK callback)
+  {
+    std::unique_lock<std::shared_mutex> lock(g_Mutex);
+    for (int i = 0; i < MAX_LISTENERS; i++)
+    {
+      if (g_PlayListeners[i] == nullptr)
+      {
+        g_PlayListeners[i] = callback;
+        return i;
+      }
+    }
+  }
+
+  void UnregisterPlayListener(int id)
+  {
+    std::unique_lock<std::shared_mutex> lock(g_Mutex);
+    g_PlayListeners[id] = nullptr;
   }
 
   void SetPlayer(int slot)
@@ -226,6 +249,14 @@ void CAudioInterface::UnregisterPlayEndListener(int id)
 {
   api::UnregisterPlayEndListener(id);
 }
+int CAudioInterface::RegisterPlayListener(PLAY_CALLBACK callback)
+{
+  return api::RegisterPlayListener(callback);
+}
+void CAudioInterface::UnregisterPlayListener(int id)
+{
+  api::UnregisterPlayListener(id);
+}
 void CAudioInterface::SetPlayer(int slot)
 {
   api::SetPlayer(slot);
@@ -293,6 +324,16 @@ extern "C"
   {
     api::UnregisterPlayEndListener(id);
   }
+  int __cdecl NativeRegisterPlayListener(PLAY_CALLBACK callback)
+  {
+    return api::RegisterPlayListener(callback);
+  }
+
+  void __cdecl NativeUnregisterPlayListener(int id)
+  {
+    api::UnregisterPlayListener(id);
+  }
+
   void __cdecl NativeSetPlayer(int slot)
   {
     api::SetPlayer(slot);

@@ -116,6 +116,16 @@ void SendVoiceDataLoop()
                     if (callback != nullptr)
                         callback(-1);
                 }
+                g_GlobalProgress = 0;
+            }
+            else
+            {
+                for (auto &callback : g_PlayListeners)
+                {
+                    if (callback != nullptr)
+                        callback(-1, g_GlobalProgress);
+                }
+                g_GlobalProgress += 40;
             }
         }
 
@@ -141,6 +151,16 @@ void SendVoiceDataLoop()
                         if (callback != nullptr)
                             callback(slot);
                     }
+                    g_PlayerProgress[slot] = 0;
+                }
+                else
+                {
+                    for (auto &callback : g_PlayListeners)
+                    {
+                        if (callback != nullptr)
+                            callback(slot, g_PlayerProgress[slot]);
+                    }
+                    g_PlayerProgress[slot] += 40;
                 }
             }
             if (!all_data.msg && !player_data.msg)

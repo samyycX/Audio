@@ -35,6 +35,8 @@ namespace api
   void UnregisterPlayStartListener(int id);
   int RegisterPlayEndListener(PLAY_END_CALLBACK callback);
   void UnregisterPlayEndListener(int id);
+  int RegisterPlayListener(PLAY_CALLBACK callback);
+  void UnregisterPlayListener(int id);
 
   void SetPlayer(int slot);
 
@@ -59,6 +61,8 @@ public:
   virtual void UnregisterPlayStartListener(int id);
   virtual int RegisterPlayEndListener(PLAY_END_CALLBACK callback);
   virtual void UnregisterPlayEndListener(int id);
+  virtual int RegisterPlayListener(PLAY_CALLBACK callback);
+  virtual void UnregisterPlayListener(int id);
 
   virtual void SetPlayer(int slot);
 };
@@ -84,6 +88,8 @@ extern "C"
   PINVOKE_EXPORT void NativeUnregisterPlayStartListener(int id);
   PINVOKE_EXPORT int NativeRegisterPlayEndListener(PLAY_END_CALLBACK callback);
   PINVOKE_EXPORT void NativeUnregisterPlayEndListener(int id);
+  PINVOKE_EXPORT int NativeRegisterPlayListener(PLAY_CALLBACK callback);
+  PINVOKE_EXPORT void NativeUnregisterPlayListener(int id);
 
   PINVOKE_EXPORT void NativeSetPlayer(int slot);
 }

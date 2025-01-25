@@ -10,6 +10,7 @@ class IAudio
 
   typedef void (*PLAY_START_HANDLER)(int);
   typedef void (*PLAY_END_HANDLER)(int);
+  typedef void (*PLAY_HANDLER)(int, int);
 
 public:
   /*
@@ -82,6 +83,15 @@ public:
    * @param id - listener id
    */
   virtual void UnregisterPlayEndListener(int id) = 0;
+  /*
+   * @param handler - play listener handler
+   * @return id - listener id, you can ignore it
+   */
+  virtual int RegisterPlayListener(PLAY_HANDLER handler) = 0;
+  /*
+   * @param id - listener id
+   */
+  virtual void UnregisterPlayListener(int id) = 0;
   /*
    * @param slot - player slot to set
    */

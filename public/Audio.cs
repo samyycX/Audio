@@ -5,6 +5,7 @@ public unsafe static class Audio
 {
   public delegate void PlayStartHandler(int slot);
   public delegate void PlayEndHandler(int slot);
+  public delegate void PlayHandler(int slot, int progress);
 
   private static class NativeMethods
   {
@@ -43,6 +44,13 @@ public unsafe static class Audio
 
     [DllImport("audio", CallingConvention = CallingConvention.Cdecl)]
     public static extern void NativeUnregisterPlayEndListener(int id);
+
+    [DllImport("audio", CallingConvention = CallingConvention.Cdecl)]
+    public static extern int NativeRegisterPlayListener([MarshalAs(UnmanagedType.FunctionPtr)] PlayHandler callback);
+
+    [DllImport("audio", CallingConvention = CallingConvention.Cdecl)]
+    public static extern void NativeUnregisterPlayListener(int id);
+
 
     [DllImport("audio", CallingConvention = CallingConvention.Cdecl)]
     public static extern void NativeSetPlayer(int slot);
@@ -184,7 +192,6 @@ public unsafe static class Audio
     _PlayEndListeners[handler] = id;
     return id;
   }
-
   /*
   * @param handler - play end handler
   */
@@ -193,7 +200,17 @@ public unsafe static class Audio
     NativeMethods.NativeUnregisterPlayEndListener(_PlayEndListeners[handler]);
     _PlayEndListeners.Remove(handler);
   }
-
+  public static int RegisterPlayListener(PlayHandler handler)
+  {
+    var id = NativeMethods.NativeRegisterPlayListener(handler);
+    _PlayListeners[handler] = id;
+    return id;
+  }
+  public static void UnregisterPlayListener(PlayHandler handler)
+  {
+    NativeMethods.NativeUnregisterPlayListener(_PlayListeners[handler]);
+    _PlayListeners.Remove(handler);
+  }
   /*
   * @param slot - player slot to set
   */
