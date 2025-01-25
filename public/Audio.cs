@@ -78,6 +78,7 @@ public unsafe static class Audio
 
   private static Dictionary<PlayStartHandler, int> _PlayStartListeners = new Dictionary<PlayStartHandler, int>();
   private static Dictionary<PlayEndHandler, int> _PlayEndListeners = new Dictionary<PlayEndHandler, int>();
+  private static Dictionary<PlayHandler, int> _PlayListeners = new Dictionary<PlayHandler, int>();
 
   /*
   * @param slot - player slot to set
