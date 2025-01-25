@@ -3,6 +3,7 @@
 bool g_Initialized = false;
 std::vector<luabridge::LuaRef> g_PlayStartListeners;
 std::vector<luabridge::LuaRef> g_PlayEndListeners;
+std::vector<luabridge::LuaRef> g_PlayListeners;
 
 void Audio::SetPlayerHearing(int slot, bool hearing)
 {
@@ -72,6 +73,18 @@ void Audio::UnregisterPlayEndListener(luabridge::LuaRef handler)
   m_PlayEndListeners.erase(std::remove(m_PlayEndListeners.begin(), m_PlayEndListeners.end(), handler), m_PlayEndListeners.end());
   g_PlayEndListeners.erase(std::remove(g_PlayEndListeners.begin(), g_PlayEndListeners.end(), handler), g_PlayEndListeners.end());
 }
+void Audio::RegisterPlayListener(luabridge::LuaRef handler)
+{
+  m_PlayListeners.push_back(handler);
+  g_PlayListeners.push_back(handler);
+}
+
+void Audio::UnregisterPlayListener(luabridge::LuaRef handler)
+{
+  m_PlayListeners.erase(std::remove(m_PlayListeners.begin(), m_PlayListeners.end(), handler), m_PlayListeners.end());
+  g_PlayListeners.erase(std::remove(g_PlayListeners.begin(), g_PlayListeners.end(), handler), g_PlayListeners.end());
+}
+
 void Audio::SetPlayer(int slot)
 {
   m_pAudio->SetPlayer(slot);
@@ -107,5 +120,12 @@ void Audio::OnPlayEnd(int slot)
   for (auto &listener : g_PlayEndListeners)
   {
     listener(slot);
+  }
+}
+void Audio::OnPlay(int slot, int progress)
+{
+  for (auto &listener : g_PlayListeners)
+  {
+    listener(slot, progress);
   }
 }

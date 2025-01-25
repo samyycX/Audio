@@ -15,6 +15,7 @@
 extern bool g_Initialized;
 extern std::vector<luabridge::LuaRef> g_PlayStartListeners;
 extern std::vector<luabridge::LuaRef> g_PlayEndListeners;
+extern std::vector<luabridge::LuaRef> g_PlayListeners;
 
 class Audio
 {
@@ -26,6 +27,7 @@ public:
     {
       m_pAudio->RegisterPlayStartListener(&Audio::OnPlayStart);
       m_pAudio->RegisterPlayEndListener(&Audio::OnPlayEnd);
+      m_pAudio->RegisterPlayListener(&Audio::OnPlay);
       g_Initialized = true;
     }
   }
@@ -47,17 +49,21 @@ public:
   void UnregisterPlayStartListener(luabridge::LuaRef handler);
   void RegisterPlayEndListener(luabridge::LuaRef handler);
   void UnregisterPlayEndListener(luabridge::LuaRef handler);
+  void RegisterPlayListener(luabridge::LuaRef handler);
+  void UnregisterPlayListener(luabridge::LuaRef handler);
   void SetPlayer(int slot);
   void Unload();
 
 protected:
   static void OnPlayStart(int slot);
   static void OnPlayEnd(int slot);
+  static void OnPlay(int slot, int progress);
 
 private:
   IAudio *m_pAudio;
   std::vector<luabridge::LuaRef> m_PlayStartListeners;
   std::vector<luabridge::LuaRef> m_PlayEndListeners;
+  std::vector<luabridge::LuaRef> m_PlayListeners;
 };
 
 #endif

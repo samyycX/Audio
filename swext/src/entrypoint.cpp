@@ -44,6 +44,8 @@ bool AudioExtension::OnPluginLoad(std::string pluginName, void *pluginState, Plu
       .addFunction("UnregisterPlayStartListener", &Audio::UnregisterPlayStartListener)
       .addFunction("RegisterPlayEndListener", &Audio::RegisterPlayEndListener)
       .addFunction("UnregisterPlayEndListener", &Audio::UnregisterPlayEndListener)
+      .addFunction("RegisterPlayListener", &Audio::RegisterPlayListener)
+      .addFunction("UnregisterPlayListener", &Audio::UnregisterPlayListener)
       .addFunction("SetPlayer", &Audio::SetPlayer)
       .addFunction("Unload", &Audio::Unload)
       .endClass();
