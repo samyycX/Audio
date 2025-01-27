@@ -50,60 +50,65 @@ namespace api
   }
   void PlayToPlayer(int slot, std::string audioBuffer, std::string audioPath, float volume)
   {
-    if (audioBuffer.size() == 0 && audioPath.size() == 0)
+    if (g_PlayerAudioBuffer[slot].size() > 0)
     {
-      std::unique_lock<std::shared_mutex> lock(g_Mutex);
-      g_PlayerAudioBuffer[slot].clear();
-      g_PlayerProgress[slot] = 0;
-      for (auto &callback : g_PlayEndListeners)
-      {
-        if (callback != nullptr)
-          callback(slot);
-      }
-      return;
+      StopPlaying(slot);
     }
-    auto lambda = [slot](std::vector<SVCVoiceDataMessage> msgbuffer)
+    auto lambda = [slot](SVCVoiceDataMessage msgbuffer)
     {
       std::unique_lock<std::shared_mutex> lock(g_Mutex);
-      g_PlayerAudioBuffer[slot] = msgbuffer;
-      g_PlayerProgress[slot] = 0;
-      for (auto &callback : g_PlayStartListeners)
-      {
-        if (callback != nullptr)
-          callback(slot);
-      }
+      g_PlayerAudioBuffer[slot].push_back(msgbuffer);
     };
-    std::thread process(ProcessVoiceData, audioBuffer, audioPath, lambda, volume);
+    // get timestamp
+    unsigned long timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    g_ProcessingThreads.Insert(slot, timestamp);
+    std::thread process(ProcessVoiceData, slot, timestamp, audioBuffer, audioPath, lambda, volume);
     process.detach();
   }
 
   void Play(std::string audioBuffer, std::string audioPath, float volume)
   {
-    if (audioBuffer.size() == 0 && audioPath.size() == 0)
+    if (g_GlobalAudioBuffer.size() > 0)
     {
-      std::unique_lock<std::shared_mutex> lock(g_Mutex);
-      g_GlobalAudioBuffer.clear();
-      g_GlobalProgress = 0;
-      for (auto &callback : g_PlayEndListeners)
-      {
-        if (callback != nullptr)
-          callback(-1);
-      }
-      return;
+      StopAllPlaying();
     }
-    auto lambda = [](std::vector<SVCVoiceDataMessage> msgbuffer)
+    auto lambda = [](SVCVoiceDataMessage msgbuffer)
     {
       std::unique_lock<std::shared_mutex> lock(g_Mutex);
-      g_GlobalAudioBuffer = msgbuffer;
-      g_GlobalProgress = 0;
-      for (auto &callback : g_PlayStartListeners)
-      {
-        if (callback != nullptr)
-          callback(-1);
-      }
+      g_GlobalAudioBuffer.push_back(msgbuffer);
     };
-    std::thread process(ProcessVoiceData, audioBuffer, audioPath, lambda, volume);
+    unsigned long timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    g_ProcessingThreads.Insert(-1, timestamp);
+    std::thread process(ProcessVoiceData, -1, timestamp, audioBuffer, audioPath, lambda, volume);
     process.detach();
+  }
+
+  void StopAllPlaying()
+  {
+    std::unique_lock<std::shared_mutex> lock(g_Mutex);
+    for (auto &msg : g_GlobalAudioBuffer)
+    {
+      msg.Destroy();
+    }
+    g_GlobalAudioBuffer.clear();
+    CallPlayEndListeners(-1);
+    if (g_ProcessingThreads.Find(-1) != g_ProcessingThreads.InvalidIndex())
+      g_ProcessingThreads.Remove(-1);
+  }
+
+  void StopPlaying(int slot)
+  {
+    std::unique_lock<std::shared_mutex> lock(g_Mutex);
+    for (auto &msg : g_PlayerAudioBuffer[slot])
+    {
+      msg.Destroy();
+    }
+    g_PlayerAudioBuffer[slot].clear();
+    CallPlayEndListeners(slot);
+    if (g_ProcessingThreads.Find(slot) != g_ProcessingThreads.InvalidIndex())
+    {
+      g_ProcessingThreads.Remove(slot);
+    }
   }
 
   bool IsPlaying(int slot)
@@ -225,6 +230,14 @@ void CAudioInterface::PlayFromFile(std::string audioFile, float volume)
 {
   api::Play("", audioFile, volume);
 }
+void CAudioInterface::StopAllPlaying()
+{
+  api::StopAllPlaying();
+}
+void CAudioInterface::StopPlaying(int slot)
+{
+  api::StopPlaying(slot);
+}
 bool CAudioInterface::IsPlaying(int slot)
 {
   return api::IsPlaying(slot);
@@ -293,6 +306,16 @@ extern "C"
     auto data2 = std::string(audioPath, audioPathSize);
 
     api::Play(data1, data2, volume);
+  }
+
+  void __cdecl NativeStopAllPlaying()
+  {
+    api::StopAllPlaying();
+  }
+
+  void __cdecl NativeStopPlaying(int slot)
+  {
+    api::StopPlaying(slot);
   }
 
   bool __cdecl NativeIsPlaying(int slot)

@@ -43,6 +43,8 @@ public:
   void PlayToPlayerFromFile(int slot, std::string audioFile, float volume);
   void PlayFromBuffer(std::string audioBuffer, float volume);
   void PlayFromFile(std::string audioFile, float volume);
+  void StopAllPlaying();
+  void StopPlaying(int slot);
   bool IsPlaying(int slot);
   bool IsAllPlaying();
   void RegisterPlayStartListener(luabridge::LuaRef handler);
@@ -57,7 +59,7 @@ public:
 protected:
   static void OnPlayStart(int slot);
   static void OnPlayEnd(int slot);
-  static void OnPlay(int slot, int progress);
+  static void OnPlay(int slot);
 
 private:
   IAudio *m_pAudio;

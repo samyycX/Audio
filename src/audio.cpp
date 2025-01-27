@@ -104,11 +104,13 @@ void SendVoiceDataLoop()
             continue;
         }
         SVCVoiceDataMessage all_data;
+        bool played = false;
         if (!g_GlobalAudioBuffer.empty())
         {
             all_data = g_GlobalAudioBuffer.front();
             g_GlobalAudioBuffer.erase(g_GlobalAudioBuffer.begin());
-            if (g_GlobalAudioBuffer.empty())
+            played = true;
+            if (g_GlobalAudioBuffer.empty() && g_ProcessingThreads.Find(-1) == g_ProcessingThreads.InvalidIndex())
             {
                 // call all play end listeners
                 for (auto &callback : g_PlayEndListeners)
@@ -116,16 +118,14 @@ void SendVoiceDataLoop()
                     if (callback != nullptr)
                         callback(-1);
                 }
-                g_GlobalProgress = 0;
             }
             else
             {
                 for (auto &callback : g_PlayListeners)
                 {
                     if (callback != nullptr)
-                        callback(-1, g_GlobalProgress);
+                        callback(-1);
                 }
-                g_GlobalProgress += 40;
             }
         }
 
@@ -138,12 +138,13 @@ void SendVoiceDataLoop()
             if (!client->IsInGame() || client->IsFakePlayer() || client->IsHLTV())
                 continue;
             int slot = client->GetPlayerSlot().Get();
-            std::vector<SVCVoiceDataMessage> playerBuffer = g_PlayerAudioBuffer[slot];
-            if (!playerBuffer.empty())
+            std::vector<SVCVoiceDataMessage> *playerBuffer = &g_PlayerAudioBuffer[slot];
+            if (!playerBuffer->empty())
             {
-                player_data = playerBuffer.front();
-                playerBuffer.erase(playerBuffer.begin());
-                if (playerBuffer.empty())
+                player_data = playerBuffer->front();
+                playerBuffer->erase(playerBuffer->begin());
+                played = true;
+                if (playerBuffer->empty() && g_ProcessingThreads.Find(slot) == g_ProcessingThreads.InvalidIndex())
                 {
                     // call all play end listeners
                     for (auto &callback : g_PlayEndListeners)
@@ -151,16 +152,14 @@ void SendVoiceDataLoop()
                         if (callback != nullptr)
                             callback(slot);
                     }
-                    g_PlayerProgress[slot] = 0;
                 }
                 else
                 {
                     for (auto &callback : g_PlayListeners)
                     {
                         if (callback != nullptr)
-                            callback(slot, g_PlayerProgress[slot]);
+                            callback(slot);
                     }
-                    g_PlayerProgress[slot] += 40;
                 }
             }
             if (!all_data.msg && !player_data.msg)
@@ -185,6 +184,7 @@ void SendVoiceDataLoop()
             pData->CopyFrom(*data->msg);
             std::string *copied_data = new std::string(data->voice_data);
             pData->mutable_audio()->set_allocated_voice_data(copied_data);
+            pData->mutable_audio()->set_section_number(g_SectionNumber);
             // my test:
             // real player -> play from real player
             // fake client -> play from a bot which has no team, need sv_alltalk 1
@@ -201,6 +201,10 @@ void SendVoiceDataLoop()
         if (all_data.msg)
         {
             all_data.Destroy();
+        }
+        if (played)
+        {
+            g_SectionNumber += 1;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(39));
     }

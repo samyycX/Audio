@@ -10,7 +10,7 @@ class IAudio
 
   typedef void (*PLAY_START_HANDLER)(int);
   typedef void (*PLAY_END_HANDLER)(int);
-  typedef void (*PLAY_HANDLER)(int, int);
+  typedef void (*PLAY_HANDLER)(int);
 
 public:
   /*
@@ -54,6 +54,18 @@ public:
      @param audioFileSize - the size of audioFile
    */
   virtual void PlayFromFile(std::string audioFile, float volume = 1.0) = 0;
+  /*
+   * @param slot - player slot to get
+   * @return whether there are audio playing for a specific player
+   */
+  /*
+   * Stop all playing audio
+   */
+  virtual void StopAllPlaying() = 0;
+  /*
+   * Stop playing audio for a specific player
+   */
+  virtual void StopPlaying(int slot) = 0;
   /*
    * @param slot - player slot to get
    * @return whether there are audio playing for a specific player

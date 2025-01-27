@@ -82,54 +82,46 @@ std::vector<uint8_t> ConvertAudioBufferToPCM(std::string file_path, float volume
   return outputBuffer;
 }
 
-std::vector<SVCVoiceDataMessage> FillVoiceMessage(std::vector<std::string> &buffers, CServerSideClient *sender, float voicelevel)
+SVCVoiceDataMessage FillVoiceMessage(std::vector<std::string> &buffers, CServerSideClient *sender, float voicelevel)
 {
-  std::vector<SVCVoiceDataMessage> result;
-  while (true)
+  INetworkMessageInternal *pSVC_VoiceData = g_pNetworkMessages->FindNetworkMessageById(47);
+  CNetMessagePB<CSVCMsg_VoiceData> *pData = pSVC_VoiceData->AllocateMessage()->ToPB<CSVCMsg_VoiceData>();
+  if (sender)
+  {
+    pData->set_client(sender->GetPlayerSlot().Get());
+  }
+  pData->set_xuid(0);
+  CMsgVoiceAudio *audio = pData->mutable_audio();
+  std::string voice_data;
+  int num_packets = 0;
+  int packet_offsets = 0;
+  for (int i = 0; i < 4; i++)
   {
     if (buffers.size() == 0)
-      break;
-    INetworkMessageInternal *pSVC_VoiceData = g_pNetworkMessages->FindNetworkMessageById(47);
-    CNetMessagePB<CSVCMsg_VoiceData> *pData = pSVC_VoiceData->AllocateMessage()->ToPB<CSVCMsg_VoiceData>();
-    if (sender)
     {
-      pData->set_client(sender->GetPlayerSlot().Get());
+      continue;
     }
-    pData->set_xuid(0);
-    CMsgVoiceAudio *audio = pData->mutable_audio();
-    std::string voice_data;
-    int num_packets = 0;
-    int packet_offsets = 0;
-    for (int i = 0; i < 4; i++)
-    {
-      if (buffers.size() == 0)
-      {
-        continue;
-      }
-      std::string buf = buffers.front();
-      voice_data.append(buf);
-      audio->add_packet_offsets(packet_offsets + buf.size());
-      packet_offsets += buf.size();
-      buffers.erase(buffers.begin());
-      num_packets += 1;
-    }
-    g_SectionNumber += 1;
-    // audio->set_allocated_voice_data(&voice_data);
-    audio->set_format(VoiceDataFormat_t::VOICEDATA_FORMAT_OPUS);
-    audio->set_sample_rate(SAMPLERATE);
-    audio->set_sequence_bytes(0);
-    audio->set_num_packets(num_packets);
-    // not sure if this is correct
-    audio->set_section_number(g_SectionNumber);
-    audio->set_voice_level(voicelevel);
-    result.push_back(SVCVoiceDataMessage({voice_data, pData}));
+    std::string buf = buffers.front();
+    voice_data.append(buf);
+    audio->add_packet_offsets(packet_offsets + buf.size());
+    packet_offsets += buf.size();
+    buffers.erase(buffers.begin());
+    num_packets += 1;
   }
-
-  return result;
+  // audio->set_allocated_voice_data(&voice_data);
+  audio->set_format(VoiceDataFormat_t::VOICEDATA_FORMAT_OPUS);
+  audio->set_sample_rate(SAMPLERATE);
+  audio->set_sequence_bytes(0);
+  audio->set_num_packets(num_packets);
+  // not sure if this is correct
+  audio->set_section_number(g_SectionNumber);
+  audio->set_voice_level(voicelevel);
+  return SVCVoiceDataMessage({voice_data, pData});
 }
 
-void ProcessVoiceData(std::string audioBuffer, std::string audioPath, std::function<void(std::vector<SVCVoiceDataMessage>)> const &callback, float volumeLevel = 1.0)
+void ProcessVoiceData(int slot, unsigned long id, std::string audioBuffer, std::string audioPath, std::function<void(SVCVoiceDataMessage)> const &callback, float volumeLevel = 1.0)
 {
+  Message("Converting voice data to pcm...\n");
   std::vector<std::string> opus_buffers;
   std::vector<uint8_t> buffer;
   // convert audio to s16be pcm (little endian), 48khz sample rate, 1 channel
@@ -169,11 +161,17 @@ void ProcessVoiceData(std::string audioBuffer, std::string audioPath, std::funct
     }
   }
 
-  Message("Encoding to opus format...\n");
+  Message("Start playing\n");
+  CallPlayStartListeners(slot);
   while (true)
   {
-    if (buffer.size() == 0)
+    if (g_ProcessingThreads.Find(slot) == g_ProcessingThreads.InvalidIndex() || g_ProcessingThreads[g_ProcessingThreads.Find(slot)] != id || buffer.size() == 0)
+    {
+      buffer.shrink_to_fit();
+      opus_buffers.clear();
+      opus_buffers.shrink_to_fit();
       break;
+    }
     std::vector<int16_t> pcm_buffer(FRAMESIZE * 1 * 2);
     std::vector<unsigned char> opus_buffer(2048);
     auto frame_size = std::min<size_t>(FRAMESIZE, buffer.size());
@@ -202,14 +200,27 @@ void ProcessVoiceData(std::string audioBuffer, std::string audioPath, std::funct
       opus_buffer.resize(opus_size);
       std::string data = std::string(opus_buffer.begin(), opus_buffer.end());
       opus_buffers.push_back(data);
+      if (opus_buffers.size() == 4)
+      {
+        auto msg = FillVoiceMessage(opus_buffers, nullptr, 0.0f);
+        if (callback)
+        {
+          callback(msg);
+        }
+        opus_buffers.clear();
+      }
     }
+    // release all memory
+    pcm_buffer.clear();
+    pcm_buffer.shrink_to_fit();
+    opus_buffer.clear();
+    opus_buffer.shrink_to_fit();
+    extracted.clear();
+    extracted.shrink_to_fit();
   }
-  Message("Filled %d packets\n", opus_buffers.size());
-  auto msgs = FillVoiceMessage(opus_buffers, nullptr, 0.0f);
-
-  if (callback)
+  if (g_ProcessingThreads.Find(slot) != g_ProcessingThreads.InvalidIndex() && g_ProcessingThreads[g_ProcessingThreads.Find(slot)] == id)
   {
-    callback(msgs);
+    g_ProcessingThreads.Remove(slot);
   }
 }
 
@@ -235,4 +246,31 @@ CServerSideClient *GetFakeClient(const char *name)
     fakeClient = GetClientBySlot(slot);
   }
   return fakeClient;
+}
+
+void CallPlayStartListeners(int slot)
+{
+  for (auto &callback : g_PlayStartListeners)
+  {
+    if (callback != nullptr)
+      callback(slot);
+  }
+}
+
+void CallPlayEndListeners(int slot)
+{
+  for (auto &callback : g_PlayEndListeners)
+  {
+    if (callback != nullptr)
+      callback(slot);
+  }
+}
+
+void CallPlayListeners(int slot)
+{
+  for (auto &callback : g_PlayListeners)
+  {
+    if (callback != nullptr)
+      callback(slot);
+  }
 }

@@ -5,7 +5,7 @@ public unsafe static class Audio
 {
   public delegate void PlayStartHandler(int slot);
   public delegate void PlayEndHandler(int slot);
-  public delegate void PlayHandler(int slot, int progress);
+  public delegate void PlayHandler(int slot);
 
   private static class NativeMethods
   {
@@ -24,6 +24,12 @@ public unsafe static class Audio
 
     [DllImport("audio", CallingConvention = CallingConvention.Cdecl)]
     public static extern void NativePlay([MarshalAs(UnmanagedType.LPArray)] byte[] audioBuffer, int audioBufferSize, string audioPath, int audioPathSize, float volume = 1f);
+
+    [DllImport("audio", CallingConvention = CallingConvention.Cdecl)]
+    public static extern void NativeStopAllPlaying();
+
+    [DllImport("audio", CallingConvention = CallingConvention.Cdecl)]
+    public static extern void NativeStopPlaying(int slot);
 
     [DllImport("audio", CallingConvention = CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.I1)]
@@ -142,6 +148,22 @@ public unsafe static class Audio
   public static void PlayFromFile(string audioFile, float volume = 1f)
   {
     NativeMethods.NativePlay([], 0, audioFile, audioFile.Length, volume);
+  }
+
+  /*
+  * Stop all playing audio
+  */
+  public static void StopAllPlaying()
+  {
+    NativeMethods.NativeStopAllPlaying();
+  }
+
+  /*
+  * @param slot - player slot to stop
+  */
+  public static void StopPlaying(int slot)
+  {
+    NativeMethods.NativeStopPlaying(slot);
   }
 
   /*

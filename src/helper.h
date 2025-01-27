@@ -14,8 +14,12 @@ CServerSideClient *GetClientBySlot(CPlayerSlot slot);
 
 std::vector<uint8_t> ConvertAudioBufferToPCM(std::string file_path);
 
-std::vector<SVCVoiceDataMessage> FillVoiceMessage(std::vector<std::string> &buffers, CServerSideClient *sender, float voicelevel);
+SVCVoiceDataMessage FillVoiceMessage(std::vector<std::string> &buffers, CServerSideClient *sender, float voicelevel);
 
-void ProcessVoiceData(std::string audioBuffer, std::string audioPath, std::function<void(std::vector<SVCVoiceDataMessage>)> const &callback, float volume);
+void ProcessVoiceData(int slot, unsigned long id, std::string audioBuffer, std::string audioPath, std::function<void(SVCVoiceDataMessage)> const &callback, float volume);
 
 CServerSideClient *GetFakeClient(const char *name);
+
+void CallPlayStartListeners(int slot);
+void CallPlayEndListeners(int slot);
+void CallPlayListeners(int slot);

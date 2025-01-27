@@ -40,6 +40,16 @@ void Audio::PlayFromFile(std::string audioFile, float volume)
   m_pAudio->PlayFromFile(audioFile, volume);
 }
 
+void Audio::StopAllPlaying()
+{
+  m_pAudio->StopAllPlaying();
+}
+
+void Audio::StopPlaying(int slot)
+{
+  m_pAudio->StopPlaying(slot);
+}
+
 bool Audio::IsPlaying(int slot)
 {
   return m_pAudio->IsPlaying(slot);
@@ -122,10 +132,10 @@ void Audio::OnPlayEnd(int slot)
     listener(slot);
   }
 }
-void Audio::OnPlay(int slot, int progress)
+void Audio::OnPlay(int slot)
 {
   for (auto &listener : g_PlayListeners)
   {
-    listener(slot, progress);
+    listener(slot);
   }
 }

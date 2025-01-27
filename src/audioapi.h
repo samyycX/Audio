@@ -28,6 +28,8 @@ namespace api
    */
   void PlayToPlayer(int slot, std::string audioBuffer, std::string audioPath, float volume);
   void Play(std::string audioBuffer, std::string audioPath, float volume);
+  void StopAllPlaying();
+  void StopPlaying(int slot);
   bool IsPlaying(int slot);
   bool IsAllPlaying();
 
@@ -54,6 +56,8 @@ public:
   virtual void PlayToPlayerFromFile(int slot, std::string audioFile, float volume = 1.0) override;
   virtual void PlayFromBuffer(std::string audioBuffer, float volume = 1.0) override;
   virtual void PlayFromFile(std::string audioFile, float volume = 1.0) override;
+  virtual void StopAllPlaying() override;
+  virtual void StopPlaying(int slot) override;
   virtual bool IsPlaying(int slot) override;
   virtual bool IsAllPlaying() override;
 
@@ -81,6 +85,8 @@ extern "C"
 
   PINVOKE_EXPORT void NativePlayToPlayer(int slot, const char *audioBuffer, int audioBufferSize, const char *audioPath, int audioPathSize, float volume = 1.0);
   PINVOKE_EXPORT void NativePlay(const char *audioBuffer, int audioBufferSize, const char *audioPath, int audioPathSize, float volume = 1.0);
+  PINVOKE_EXPORT void NativeStopAllPlaying();
+  PINVOKE_EXPORT void NativeStopPlaying(int slot);
   PINVOKE_EXPORT bool NativeIsPlaying(int slot);
   PINVOKE_EXPORT bool NativeIsAllPlaying();
 
