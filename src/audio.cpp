@@ -309,7 +309,11 @@ void Audio::Hook_StartupServer(const GameSessionConfiguration_t &config, ISource
 
 void Audio::OnLevelShutdown()
 {
+    Message("[Audio] The loop is paused here.");
     g_bPlaying = false;
+    
+    if(!g_GlobalAudioBuffer.empty())
+        g_GlobalAudioBuffer.clear();
 }
 
 int Audio::Hook_LoadEventsFromFile(const char *filename, bool bSearchAll)
