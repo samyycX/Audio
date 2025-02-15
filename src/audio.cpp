@@ -88,7 +88,6 @@ void SendVoiceDataLoop()
 {
 
     // std::chrono::steady_clock::time_point last_pull;
-
     // cs2 opus: 48khz samplerate, 480 framesize, a message can hold 4 packets, so we need to start a thread to send it each 40ms
     while (true)
     {
@@ -306,6 +305,11 @@ void Audio::Hook_StartupServer(const GameSessionConfiguration_t &config, ISource
         initialized = true;
     }
     // g_bPlaying = 1;
+}
+
+void Audio::OnLevelShutdown()
+{
+    g_bPlaying = false;
 }
 
 int Audio::Hook_LoadEventsFromFile(const char *filename, bool bSearchAll)
