@@ -30,6 +30,7 @@ public:
 
 public:
   void Hook_StartupServer(const GameSessionConfiguration_t &config, ISource2WorldSession *, const char *);
+  void Hook_GameFramePre(bool, bool, bool);
   int Hook_LoadEventsFromFile(const char *filename, bool bSearchAll);
 
 public:
