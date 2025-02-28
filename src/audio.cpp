@@ -57,6 +57,7 @@ class GameSessionConfiguration_t
 {
 };
 
+SH_DECL_HOOK3_void(IServerGameDLL, GameFrame, SH_NOATTRIB, 0, bool, bool, bool);
 SH_DECL_HOOK3_void(INetworkServerService, StartupServer, SH_NOATTRIB, 0, const GameSessionConfiguration_t &, ISource2WorldSession *, const char *);
 SH_DECL_HOOK2(IGameEventManager2, LoadEventsFromFile, SH_NOATTRIB, 0, int, const char *, bool);
 void Message(const char *msg, ...)
@@ -86,25 +87,30 @@ void Panic(const char *msg, ...)
 }
 void SendVoiceDataLoop()
 {
-
     // std::chrono::steady_clock::time_point last_pull;
+
     // cs2 opus: 48khz samplerate, 480 framesize, a message can hold 4 packets, so we need to start a thread to send it each 40ms
     while (true)
     {
+        int interval = 29000000 - g_LastDelay;
+
+        // int interval = 30000000 - g_LastDelay;
+        std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
         if (!g_bPlaying)
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds(39));
+            std::this_thread::sleep_for(std::chrono::nanoseconds(interval));
             continue;
         }
         CUtlVector<CServerSideClient *> *client_list = GetClientList();
         if (client_list->Count() == 0)
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds(39));
+            std::this_thread::sleep_for(std::chrono::nanoseconds(interval));
             continue;
         }
         SVCVoiceDataMessage all_data;
         bool played = false;
         if (!g_GlobalAudioBuffer.empty())
+
         {
             all_data = g_GlobalAudioBuffer.front();
             g_GlobalAudioBuffer.erase(g_GlobalAudioBuffer.begin());
@@ -126,6 +132,18 @@ void SendVoiceDataLoop()
                         callback(-1);
                 }
             }
+        }
+        CNetMessagePB<CSVCMsg_VoiceData> *pAllData = nullptr;
+        if (all_data.msg)
+        {
+            INetworkMessageInternal *pSVC_VoiceData = g_pNetworkMessages->FindNetworkMessageById(47);
+            pAllData = pSVC_VoiceData->AllocateMessage()->ToPB<CSVCMsg_VoiceData>();
+            pAllData->CopyFrom(*all_data.msg);
+            // pAllData->set_client(g_Player);
+            pAllData->set_client(0xFFFFFFF7);
+            std::string *copied_all_data = new std::string(all_data.voice_data);
+            pAllData->mutable_audio()->set_allocated_voice_data(copied_all_data);
+            pAllData->mutable_audio()->set_section_number(g_SectionNumber);
         }
 
         for (int i = 0; i < client_list->Count(); i++)
@@ -168,44 +186,64 @@ void SendVoiceDataLoop()
 
             if (!api::IsHearing(slot))
                 continue;
-            INetworkMessageInternal *pSVC_VoiceData = g_pNetworkMessages->FindNetworkMessageById(47);
-            CNetMessagePB<CSVCMsg_VoiceData> *pData = pSVC_VoiceData->AllocateMessage()->ToPB<CSVCMsg_VoiceData>();
-            SVCVoiceDataMessage *data = nullptr;
             if (player_data.msg)
             {
-                data = &player_data;
+                INetworkMessageInternal *pSVC_VoiceData = g_pNetworkMessages->FindNetworkMessageById(47);
+                CNetMessagePB<CSVCMsg_VoiceData> *pData = pSVC_VoiceData->AllocateMessage()->ToPB<CSVCMsg_VoiceData>();
+                pData->CopyFrom(*player_data.msg);
+                pData->set_client(g_Player);
+                std::string *copied_data = new std::string(player_data.voice_data);
+                pData->mutable_audio()->set_allocated_voice_data(copied_data);
+                pData->mutable_audio()->set_section_number(g_SectionNumber);
+                g_QueuedNextFrameFunc.push_back([client, pData]()
+                                                { client->GetNetChannel()->SendNetMessage(pData, NetChannelBufType_t::BUF_VOICE); });
+                // client->GetNetChannel()->SendNetMessage(pData, NetChannelBufType_t::BUF_VOICE);
             }
-            else
+            else if (pAllData)
             {
-                data = &all_data;
+                g_QueuedNextFrameFunc.push_back([client, pAllData]()
+                                                { client->GetNetChannel()->SendNetMessage(pAllData, NetChannelBufType_t::BUF_VOICE); });
+                // client->GetNetChannel()->SendNetMessage(pAllData, NetChannelBufType_t::BUF_VOICE);
             }
+
             // data.msg->mutable_audio()->set_voice_level(GetPlayerVolume(slot));
-            pData->CopyFrom(*data->msg);
-            std::string *copied_data = new std::string(data->voice_data);
-            pData->mutable_audio()->set_allocated_voice_data(copied_data);
-            pData->mutable_audio()->set_section_number(g_SectionNumber);
+
             // my test:
             // real player -> play from real player
             // fake client -> play from a bot which has no team, need sv_alltalk 1
             // 1 (non-exist but legit client index) -> a skeleton icon with no name playing the audio, no need sv_alltalk 1
             // 1337 (non-exist and illegal client index) -> no display, but still playing audio, no need sv_alltalk 1
             // btw, calling CreateFakeClient in this thread will cause weird bug in counterstrikesharp
-            pData->set_client(g_Player);
-            client->GetNetChannel()->SendNetMessage(pData, NetChannelBufType_t::BUF_VOICE);
-            if (player_data.msg)
-            {
-                player_data.Destroy();
-            }
+            // if (player_data.msg)
+            // {
+            //     player_data.Destroy();
+            // }
         }
-        if (all_data.msg)
-        {
-            all_data.Destroy();
-        }
+        // if (all_data.msg)
+        // {
+        //     all_data.Destroy();
+        // }
         if (played)
         {
             g_SectionNumber += 1;
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(39));
+        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+        std::chrono::duration<double, std::nano> elapsed = end - start;
+        g_LastDelay = elapsed.count();
+        if (g_LastDelay > g_MaxDelay)
+        {
+            // write to file
+            std::string path = g_TempDir + "/max_delay.txt";
+            std::ofstream file(path, std::ios::app);
+            file << g_LastDelay << std::endl;
+            file.close();
+            g_MaxDelay = g_LastDelay;
+
+            Message("Max delay exceeded: %f milliseconds\n", g_MaxDelay / 1000000.0);
+        }
+
+        // Message("Elapsed time: %f milliseconds\n", elapsed.count());
+        std::this_thread::sleep_for(std::chrono::nanoseconds(interval));
     }
 }
 
@@ -226,6 +264,7 @@ bool Audio::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool la
     engine = new CModule(ROOTBIN, "engine2");
     server = new CModule(GAMEBIN, "server");
     SH_ADD_HOOK(INetworkServerService, StartupServer, g_pNetworkServerService, SH_MEMBER(this, &Audio::Hook_StartupServer), true);
+    SH_ADD_HOOK(IServerGameDLL, GameFrame, g_pSource2Server, SH_MEMBER(this, &Audio::Hook_GameFramePre), false);
     auto pCGameEventManagerVTable = (IGameEventManager2 *)server->FindVirtualTable("CGameEventManager");
     g_iLoadEventsFromFileId = SH_ADD_DVPHOOK(IGameEventManager2, LoadEventsFromFile, pCGameEventManagerVTable, SH_MEMBER(this, &Audio::Hook_LoadEventsFromFile), false);
     if (late)
@@ -314,6 +353,24 @@ void Audio::OnLevelShutdown()
     
     if(!g_GlobalAudioBuffer.empty())
         g_GlobalAudioBuffer.clear();
+}
+
+void Audio::Hook_GameFramePre(bool simulating, bool bFirstTick, bool bLastTick)
+{
+    /**
+     * simulating:
+     * ***********
+     * true  | game is ticking
+     * false | game is not ticking
+     */
+
+    if (!simulating)
+        return;
+    for (auto &func : g_QueuedNextFrameFunc)
+    {
+        func();
+    }
+    g_QueuedNextFrameFunc.clear();
 }
 
 int Audio::Hook_LoadEventsFromFile(const char *filename, bool bSearchAll)

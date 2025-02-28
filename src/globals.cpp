@@ -10,6 +10,7 @@ std::shared_mutex g_Mutex;
 const int _MAX_SLOT = 64;
 int MAX_SLOT = _MAX_SLOT;
 
+std::vector<std::function<void()>> g_QueuedNextFrameFunc;
 std::vector<SVCVoiceDataMessage> g_PlayerAudioBuffer[_MAX_SLOT] = {};
 bool g_PlayerHearing[_MAX_SLOT];
 float g_PlayerVolume[_MAX_SLOT];
@@ -22,6 +23,9 @@ PLAY_CALLBACK g_PlayListeners[MAX_LISTENERS] = {nullptr};
 CServerSideClient *g_AudioPlayerClient;
 
 int g_Player = -1;
+
+int g_MaxDelay = 0;
+int g_LastDelay = 0;
 
 void InitializeGlobals()
 {

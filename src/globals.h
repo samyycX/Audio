@@ -37,6 +37,7 @@ inline void SVCVoiceDataMessage::Destroy()
 extern std::shared_mutex g_Mutex;
 extern int MAX_SLOT;
 
+extern std::vector<std::function<void()>> g_QueuedNextFrameFunc;
 extern std::vector<SVCVoiceDataMessage> g_PlayerAudioBuffer[];
 extern std::vector<SVCVoiceDataMessage> g_GlobalAudioBuffer;
 extern bool g_PlayerHearing[];
@@ -48,5 +49,7 @@ extern PLAY_CALLBACK g_PlayListeners[MAX_LISTENERS];
 extern CServerSideClient *g_AudioPlayerClient;
 
 extern int g_Player;
+extern int g_MaxDelay;
+extern int g_LastDelay;
 
 void InitializeGlobals();

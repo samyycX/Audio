@@ -53,7 +53,7 @@ std::vector<uint8_t> ConvertAudioBufferToPCM(std::string file_path, float volume
 {
   std::vector<uint8_t> outputBuffer;
   std::ostringstream command;
-  command << "ffmpeg -y -i \"" << file_path << "\" -acodec pcm_s16le -ac 1 -ar 48000 -filter:a \"volume=" << volume << "\" -f s16le -";
+  command << "ffmpeg -y -i \"" << file_path << "\" -acodec pcm_s16le -ac 1 -ar " << SAMPLERATE << " -filter:a \"volume=" << volume << "\" -f s16le -";
   Message("%s\n", command.str().c_str());
 #if defined(_WIN32)
   FILE *pipe = _popen(command.str().c_str(), "rb");
@@ -95,7 +95,7 @@ SVCVoiceDataMessage FillVoiceMessage(std::vector<std::string> &buffers, CServerS
   std::string voice_data;
   int num_packets = 0;
   int packet_offsets = 0;
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 3; i++)
   {
     if (buffers.size() == 0)
     {
@@ -200,7 +200,7 @@ void ProcessVoiceData(int slot, unsigned long id, std::string audioBuffer, std::
       opus_buffer.resize(opus_size);
       std::string data = std::string(opus_buffer.begin(), opus_buffer.end());
       opus_buffers.push_back(data);
-      if (opus_buffers.size() == 4)
+      if (opus_buffers.size() == 3)
       {
         auto msg = FillVoiceMessage(opus_buffers, nullptr, 0.0f);
         if (callback)
