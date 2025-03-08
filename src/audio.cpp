@@ -151,7 +151,7 @@ void SendVoiceDataLoop()
                 continue;
             SVCVoiceDataMessage player_data;
             CServerSideClient *client = client_list->Element(i);
-            if (!client->IsInGame() || client->IsFakePlayer() || client->IsHLTV())
+            if (!client->IsInGame() || client->IsFakePlayer() || client->IsHLTV() || !client->IsConnected())
                 continue;
             int slot = client->GetPlayerSlot().Get();
             std::vector<SVCVoiceDataMessage> *playerBuffer = &g_PlayerAudioBuffer[slot];
@@ -194,15 +194,15 @@ void SendVoiceDataLoop()
                 std::string *copied_data = new std::string(player_data.voice_data);
                 pData->mutable_audio()->set_allocated_voice_data(copied_data);
                 pData->mutable_audio()->set_section_number(g_SectionNumber);
-                g_QueuedNextFrameFunc.push_back([client, pData]()
-                                                { client->GetNetChannel()->SendNetMessage(pData, NetChannelBufType_t::BUF_VOICE); });
-                // client->GetNetChannel()->SendNetMessage(pData, NetChannelBufType_t::BUF_VOICE);
+                // g_QueuedNextFrameFunc.push_back([client, pData]()
+                //                                 { client->GetNetChannel()->SendNetMessage(pData, NetChannelBufType_t::BUF_VOICE); });
+                client->GetNetChannel()->SendNetMessage(pData, NetChannelBufType_t::BUF_VOICE);
             }
             else if (pAllData)
             {
-                g_QueuedNextFrameFunc.push_back([client, pAllData]()
-                                                { client->GetNetChannel()->SendNetMessage(pAllData, NetChannelBufType_t::BUF_VOICE); });
-                // client->GetNetChannel()->SendNetMessage(pAllData, NetChannelBufType_t::BUF_VOICE);
+                // g_QueuedNextFrameFunc.push_back([client, pAllData]()
+                //                                 { client->GetNetChannel()->SendNetMessage(pAllData, NetChannelBufType_t::BUF_VOICE); });
+                client->GetNetChannel()->SendNetMessage(pAllData, NetChannelBufType_t::BUF_VOICE);
             }
 
             // data.msg->mutable_audio()->set_voice_level(GetPlayerVolume(slot));
