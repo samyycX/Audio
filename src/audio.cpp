@@ -139,7 +139,7 @@ void SendVoiceDataLoop()
             pAllData = pSVC_VoiceData->AllocateMessage()->ToPB<CSVCMsg_VoiceData>();
             pAllData->CopyFrom(*all_data.msg);
             // pAllData->set_client(g_Player);
-            pAllData->set_client(0xFFFFFFF7);
+            pAllData->set_client(0);
             std::string *copied_all_data = new std::string(all_data.voice_data);
             pAllData->mutable_audio()->set_allocated_voice_data(copied_all_data);
             pAllData->mutable_audio()->set_section_number(g_SectionNumber);
