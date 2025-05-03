@@ -52,13 +52,19 @@ CServerSideClient *GetClientBySlot(CPlayerSlot slot)
 std::vector<uint8_t> ConvertAudioBufferToPCM(std::string file_path, float volume = 1.0)
 {
   std::vector<uint8_t> outputBuffer;
-  std::ostringstream command;
-  command << "ffmpeg -y -i \"" << file_path << "\" -acodec pcm_s16le -ac 1 -ar " << SAMPLERATE << " -filter:a \"volume=" << volume << "\" -f s16le -";
-  Message("%s\n", command.str().c_str());
+  std::string command;
+  command += "ffmpeg -y -i \"";
+  command += file_path;
+  command += "\" -acodec pcm_s16le -ac 1 -ar ";
+  command += std::to_string(SAMPLERATE);
+  command += " -filter:a \"volume=";
+  command += std::to_string(volume);
+  command += "\" -f s16le -";
+  Message("%s\n", command.c_str());
 #if defined(_WIN32)
-  FILE *pipe = _popen(command.str().c_str(), "rb");
+  FILE *pipe = _popen(command.c_str(), "rb");
 #else
-  FILE *pipe = popen(command.str().c_str(), "r");
+  FILE *pipe = popen(command.c_str(), "r");
 #endif
 
   if (!pipe)
