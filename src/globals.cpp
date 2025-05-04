@@ -22,7 +22,7 @@ PLAY_CALLBACK g_PlayListeners[MAX_LISTENERS] = {nullptr};
 
 CServerSideClient *g_AudioPlayerClient;
 
-int g_Player = -1;
+int g_Player = 0;
 
 int g_MaxDelay = 0;
 int g_LastDelay = 0;

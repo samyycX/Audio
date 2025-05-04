@@ -139,8 +139,7 @@ void SendVoiceDataLoop()
             INetworkMessageInternal *pSVC_VoiceData = g_pNetworkMessages->FindNetworkMessageById(47);
             pAllData = pSVC_VoiceData->AllocateMessage()->ToPB<CSVCMsg_VoiceData>();
             pAllData->CopyFrom(*all_data.msg);
-            // pAllData->set_client(g_Player);
-            pAllData->set_client(0);
+            pAllData->set_client(g_Player);
             std::string *copied_all_data = new std::string(all_data.voice_data);
             pAllData->mutable_audio()->set_allocated_voice_data(copied_all_data);
             pAllData->mutable_audio()->set_section_number(g_SectionNumber);
@@ -350,8 +349,8 @@ void Audio::OnLevelShutdown()
 {
     Message("[Audio] The loop is paused here.");
     g_bPlaying = false;
-    
-    if(!g_GlobalAudioBuffer.empty())
+
+    if (!g_GlobalAudioBuffer.empty())
         g_GlobalAudioBuffer.clear();
 }
 
