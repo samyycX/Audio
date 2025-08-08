@@ -239,7 +239,7 @@ CServerSideClient *GetFakeClient(const char *name)
     if (pClients->IsValidIndex(i))
     {
       auto client = pClients->Element(i);
-      if (client->IsInGame() && (client->IsFakePlayer() || client->IsHLTV()))
+      if (client->IsInGame() && (client->IsFakeClient() || client->IsHLTV()))
       {
         fakeClient = client;
         break;

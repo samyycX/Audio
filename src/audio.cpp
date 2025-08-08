@@ -151,7 +151,7 @@ void SendVoiceDataLoop()
                 continue;
             SVCVoiceDataMessage player_data;
             CServerSideClient *client = client_list->Element(i);
-            if (!client->IsInGame() || client->IsFakePlayer() || client->IsHLTV() || !client->IsConnected())
+            if (!client->IsInGame() || client->IsFakeClient() || client->IsHLTV() || !client->IsConnected())
                 continue;
             int slot = client->GetPlayerSlot().Get();
             std::vector<SVCVoiceDataMessage> *playerBuffer = &g_PlayerAudioBuffer[slot];
