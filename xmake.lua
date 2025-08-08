@@ -46,6 +46,7 @@ target("windows")
         "src",
         "vendor/funchook/include",
         "vendor",
+        "protobuf/generated",
         -- sdk
         SDK_PATH,
         SDK_PATH.."/thirdparty/protobuf-3.21.8/src",
