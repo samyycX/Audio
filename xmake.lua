@@ -5,6 +5,7 @@ SDK_PATH = "./.deps/hl2sdk"
 MM_PATH = "./.deps/metamod-source"
 includes("@builtin/xpack")
 
+
 target("windows")  
     set_filename("audio.dll")
     set_kind("shared")
@@ -14,6 +15,7 @@ target("windows")
     add_headerfiles("src/**.h")
     add_headerfiles("public/**.h")
     add_packages("libopus")
+    set_runtimes("MT")
 
     add_files({
         "protobuf/generated/network_connection.pb.cc",
@@ -298,7 +300,16 @@ target("swext_linux")
         "COMPILER_GCC",
         "PLATFORM_64BITS",
         "META_IS_SOURCE2",
-        "_GLIBCXX_USE_CXX11_ABI=0"
+        "_GLIBCXX_USE_CXX11_ABI=0",
+
+        "_vsnprintf=vsnprintf",
+        "_alloca=alloca",
+        "strcmpi=strcasecmp",
+        "strnicmp=strncasecmp",
+        "_snprintf=snprintf",
+        "_stricmp=strcasecmp",
+        "_strnicmp=strncasecmp",
+        "stricmp=strcasecmp",
     })
 
     set_languages("cxx17")
