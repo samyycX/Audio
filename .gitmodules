@@ -14,3 +14,6 @@
 [submodule "swext/vendor/LuaBridge"]
 	path = swext/vendor/LuaBridge
 	url = https://github.com/swiftly-solution/LuaBridge
+[submodule "swext/vendor/embedder"]
+	path = swext/vendor/embedder
+	url = https://github.com/swiftly-solution/embedder
